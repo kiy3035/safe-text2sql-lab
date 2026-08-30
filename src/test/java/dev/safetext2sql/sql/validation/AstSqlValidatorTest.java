@@ -29,6 +29,7 @@ class AstSqlValidatorTest {
 
         assertThat(validated.sql()).isEqualTo(sql);
         assertThat(validated.projectedColumns()).containsExactly("order_id", "status");
+        assertThat(validated.hasExplicitRowLimit()).isTrue();
     }
 
     @Test
@@ -90,11 +91,23 @@ class AstSqlValidatorTest {
     }
 
     @Test
+    void doesNotTreatAFromSubqueryLimitAsTheOuterQueryRowLimit() {
+        ValidatedSelect validated = validator.validate("""
+                SELECT recent.order_id
+                FROM (SELECT order_id FROM orders ORDER BY order_id LIMIT 10) recent
+                """);
+
+        // 안쪽 LIMIT은 바깥 SELECT의 최대 행 수를 보장하지 않으므로 실행기의 상한 적용을 생략하면 안 된다.
+        assertThat(validated.hasExplicitRowLimit()).isFalse();
+    }
+
+    @Test
     void acceptsFetchWhenItsLiteralRowCountIsWithinThePolicyLimit() {
         ValidatedSelect validated = validator.validate(
                 "SELECT order_id FROM orders ORDER BY order_id FETCH FIRST 10 ROWS ONLY");
 
         assertThat(validated.projectedColumns()).containsExactly("order_id");
+        assertThat(validated.hasExplicitRowLimit()).isTrue();
     }
 
     @ParameterizedTest(name = "{0}")
