@@ -1,11 +1,20 @@
 # Safe Text2SQL Lab
 
-합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. 현재는 5단계까지 구현되어 Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate, 제한된 Native Query 실행과 재시도 API, 자연어·인덱스·재시도 측정 runner를 제공한다.
+합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate, 제한된 Native Query 실행과 재시도 API, 자연어·인덱스·재시도 측정 runner와 실제 결과 기반 문서를 제공한다.
+
+상세 문서:
+
+- [아키텍처와 방어 계층](docs/architecture.md)
+- [위협 모델과 남아 있는 한계](docs/threat-model.md)
+- [실험 결과 보고서](docs/experiment-report.md)
+- [한국어 블로그 초안](docs/blog-draft.md)
+- [주요 기술 결정](docs/decisions.md)
 
 ## 요구 사항
 
 - Java 21
 - Docker와 Docker Compose
+- Windows 예시 명령을 실행할 PowerShell
 
 Gradle은 별도 설치하지 않고 저장소의 Wrapper를 사용한다. 기본 LLM provider는 `disabled`이므로 Ollama와 로컬 모델 없이 애플리케이션 및 자동 테스트를 실행할 수 있다.
 
@@ -171,6 +180,36 @@ $env:OLLAMA_READ_TIMEOUT = '30s'
 
 WireMock 기반 adapter 테스트와 Scripted/Fake 테스트 대역도 전체 테스트에 포함된다.
 
+### 실제 로컬 모델 측정 준비
+
+이 저장소 작업에서는 Ollama 프로그램과 모델을 설치하지 않았다. 사용자가 Ollama를 별도로 준비한
+뒤 모델을 설치하고 실행할 때만 다음 명령을 사용한다. `<local-model-name-and-version>`에는 재현
+가능한 정확한 model tag를 넣고 결과 metadata에도 같은 값을 남긴다.
+
+첫 번째 터미널:
+
+```powershell
+ollama serve
+```
+
+다른 터미널:
+
+```powershell
+ollama pull <local-model-name-and-version>
+ollama list
+
+$env:SQL_GENERATOR_PROVIDER = 'ollama'
+$env:OLLAMA_BASE_URL = 'http://localhost:11434'
+$env:OLLAMA_MODEL = '<local-model-name-and-version>'
+$env:OLLAMA_VERSION = '<installed-ollama-version>'
+$env:LLM_TEMPERATURE = '0'
+$env:EXPERIMENT_RUN_ID = 'my-nl-ollama-run'
+.\gradlew.bat nlExperiment
+```
+
+현재 저장된 자연어 결과는 Ollama 미설치 상태의 `PENDING`이며, 위 명령을 이 프로젝트 작업에서
+실행한 것처럼 해석하면 안 된다.
+
 ## 제한된 SQL 실행과 재시도 API
 
 - Native Query 실행기는 문자열이 아니라 `ValidatedSelect`만 입력으로 받으며
@@ -197,4 +236,45 @@ $env:QUERY_STATEMENT_TIMEOUT = '2s'
 $env:LLM_MAX_ATTEMPTS = '3'
 $env:LLM_INITIAL_BACKOFF = '200ms'
 $env:QUERY_MAX_QUESTION_LENGTH = '1000'
+```
+
+## 빈 환경 재현 점검
+
+다음 순서는 기존 DB volume에 의존하지 않도록 별도 Compose project를 사용한다. 비밀번호는 예시
+문자열을 복사하지 말고 로컬에서 새 값으로 정한다.
+
+```powershell
+git clone https://github.com/kiy3035/safe-text2sql-lab.git
+Set-Location safe-text2sql-lab
+
+$env:DB_NAME = 'text2sql'
+$env:DB_PORT = '5432'
+$env:DB_MIGRATION_PASSWORD = '<new-local-migration-password>'
+$env:APP_DB_PASSWORD = '<new-local-readonly-password>'
+$env:DOCKER_HOST = 'npipe:////./pipe/docker_engine'
+
+docker compose -p safe-text2sql-repro up -d --wait postgres
+.\gradlew.bat bootRun
+```
+
+두 번째 PowerShell에서 저장소로 이동해 health를 확인한다.
+
+```powershell
+Set-Location <clone-directory>\safe-text2sql-lab
+Invoke-RestMethod http://localhost:8080/actuator/health
+```
+
+첫 번째 PowerShell로 돌아가 `Ctrl+C`로 `bootRun`을 종료한다. 같은 첫 번째 PowerShell에서 전체
+테스트와 문서 수치 대조를 실행하면 앞서 설정한 환경 변수도 유지된다.
+
+```powershell
+.\gradlew.bat test --rerun-tasks
+.\scripts\verify_documented_results.ps1
+```
+
+재현용 DB를 모두 확인한 뒤에만 해당 project의 volume을 제거한다. 이 명령은
+`safe-text2sql-repro`에 속한 로컬 DB 데이터만 삭제한다.
+
+```powershell
+docker compose -p safe-text2sql-repro down --volumes
 ```
