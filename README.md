@@ -1,6 +1,6 @@
 # Safe Text2SQL Lab
 
-합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. 현재는 2단계까지 구현되어 Spring Boot/PostgreSQL 기반과 로컬 Ollama용 SQL 생성 adapter를 제공한다. SQL 검증과 실행은 아직 구현되지 않았다.
+합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. 현재는 3단계까지 구현되어 Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate를 제공한다. 검증된 SQL의 Native Query 실행과 재시도 API는 아직 구현되지 않았다.
 
 ## 요구 사항
 
@@ -61,6 +61,25 @@ docker compose down --volumes
 $env:DOCKER_HOST = 'npipe:////./pipe/docker_engine'
 ```
 
+Ollama와 Docker DB 없이 SQL 검증 테스트만 실행할 수도 있다.
+
+```powershell
+.\gradlew.bat test --tests 'dev.safetext2sql.sql.validation.*'
+```
+
+## SQL AST 검증 gate
+
+LLM이 생성한 문자열은 JSqlParser 5.3으로 파싱한 뒤 명시적인 허용 정책과 대조한다.
+
+- 정확히 한 개의 SELECT만 허용하며 DDL/DML/DCL, 다중 문장, CTE, 집합 연산, 잠금, SELECT INTO를 거부한다.
+- `analytics`의 공개 합성 테이블 6개와 허용 컬럼·함수만 사용할 수 있다.
+- SELECT, JOIN, WHERE, GROUP BY, HAVING, ORDER BY와 모든 서브쿼리의 참조를 재귀적으로 검사한다.
+- 별칭과 파생 테이블을 SELECT scope별로 해석하며 모호하거나 해석할 수 없는 컬럼은 거부한다.
+- `SELECT *`, `table.*`, alias column list와 검증 정책에서 지원하지 않는 확장 구문은 fail-closed로 처리한다.
+- 통과한 SQL만 외부에서 임의 생성할 수 없는 `ValidatedSelect`가 된다. 실제 실행 시점의 200행 상한과 statement timeout은 4단계에서 추가한다.
+
+악의적 SQL fixture는 [malicious-sql.json](src/test/resources/security/malicious-sql.json)에 정확히 20건으로 고정되어 있다.
+
 ## 선택형 benchmark seed
 
 기본 실행은 주문 100개의 smoke seed를 사용한다. 향후 인덱스 실험용 50,000개 주문을 추가하려면 새 로컬 DB에서 다음 값을 함께 설정한다.
@@ -88,7 +107,7 @@ $env:OLLAMA_READ_TIMEOUT = '30s'
 - model, temperature, connect/read timeout은 설정으로 주입한다.
 - base URL은 `localhost`, `127.0.0.1`, IPv6 loopback만 허용해 원격 LLM 서비스 연결을 거부한다.
 - HTTP 응답 본문과 생성 SQL은 adapter에서 로그로 남기지 않는다.
-- 생성된 SQL은 신뢰할 수 없는 문자열일 뿐이다. 3단계 AST 검증 전에는 실행할 수 없다.
+- 생성된 SQL은 신뢰할 수 없는 문자열이며, 3단계 AST 검증을 통과해 `ValidatedSelect`가 되기 전에는 실행할 수 없다.
 - `400`과 `500`, 전송 오류, 응답 형식 오류를 구분하지만 재시도는 4단계에서 단일 attempt budget으로 구현한다.
 
 WireMock 기반 adapter 테스트와 Scripted/Fake 테스트 대역도 전체 테스트에 포함된다.

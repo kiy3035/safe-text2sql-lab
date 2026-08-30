@@ -24,6 +24,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'com.github.jsqlparser:jsqlparser:5.3'
     runtimeOnly 'org.postgresql:postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -35,4 +36,9 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// 파서 API 업그레이드 때 사라질 메서드를 조기에 발견할 수 있도록 컴파일 경고를 구체적으로 출력한다.
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add('-Xlint:deprecation')
 }
