@@ -1,15 +1,19 @@
 package dev.safetext2sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.nio.file.Path;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.safetext2sql.execution.QueryExecutionException;
 import dev.safetext2sql.execution.QueryExecutionFailure;
 import dev.safetext2sql.execution.SqlQueryExecutor;
+import dev.safetext2sql.experiment.nl.NlFixtureLoader;
 import dev.safetext2sql.sql.validation.SqlValidator;
 import dev.safetext2sql.sql.validation.ValidatedSelectTestFactory;
 import org.junit.jupiter.api.Test;
@@ -185,6 +189,21 @@ class DatabaseIntegrationTest {
                 .andExpect(jsonPath("$.attemptCount").value(0))
                 .andExpect(jsonPath("$.message").doesNotExist())
                 .andExpect(jsonPath("$.sql").doesNotExist());
+    }
+
+    @Test
+    void allFiftyGoldenSqlQueriesExecuteAgainstTheDeterministicSeed() throws Exception {
+        var fixtures = new NlFixtureLoader(new ObjectMapper()).load(
+                Path.of("experiments", "nl-questions.jsonl"),
+                Path.of("experiments", "golden-sql.jsonl")
+        );
+
+        for (var question : fixtures.questions()) {
+            var validated = sqlValidator.validate(fixtures.goldenSqlFor(question).sql());
+            assertThatCode(() -> jdbcTemplate.queryForList(validated.sql()))
+                    .as("%s golden SQL DB execution", question.id())
+                    .doesNotThrowAnyException();
+        }
     }
 
     private static void executeAsReadOnlyRole(String sql) throws SQLException {

@@ -1,0 +1,50 @@
+{"id":"G-001","sql":"SELECT COUNT(order_id) AS order_count FROM orders"}
+{"id":"G-002","sql":"SELECT COUNT(order_id) AS order_count FROM orders WHERE status = 'PAID'"}
+{"id":"G-003","sql":"SELECT COUNT(order_id) AS order_count FROM orders WHERE status = 'CANCELLED'"}
+{"id":"G-004","sql":"SELECT COUNT(order_id) AS order_count FROM orders WHERE status = 'PENDING'"}
+{"id":"G-005","sql":"SELECT COUNT(order_id) AS order_count FROM orders WHERE status = 'SHIPPED'"}
+{"id":"G-006","sql":"SELECT COUNT(payment_id) AS payment_count FROM payments WHERE status = 'COMPLETED'"}
+{"id":"G-007","sql":"SELECT COUNT(payment_id) AS payment_count FROM payments WHERE status = 'NOT_COMPLETED'"}
+{"id":"G-008","sql":"SELECT COUNT(product_id) AS product_count FROM products WHERE active = TRUE"}
+{"id":"G-009","sql":"SELECT product_id, name FROM products WHERE active = FALSE ORDER BY product_id"}
+{"id":"G-010","sql":"SELECT COUNT(customer_id) AS customer_count FROM customers WHERE region = 'SEOUL'"}
+{"id":"G-011","sql":"SELECT COUNT(customer_id) AS customer_count FROM customers WHERE grade = 'GOLD'"}
+{"id":"G-012","sql":"SELECT COUNT(order_id) AS order_count FROM orders WHERE ordered_at >= TIMESTAMPTZ '2026-07-01 00:00:00+00' AND ordered_at < TIMESTAMPTZ '2026-07-02 00:00:00+00'"}
+{"id":"G-013","sql":"SELECT COUNT(order_id) AS order_count FROM orders WHERE ordered_at >= TIMESTAMPTZ '2026-07-10 00:00:00+00'"}
+{"id":"G-014","sql":"SELECT SUM(total_amount) AS total_amount_sum FROM orders"}
+{"id":"G-015","sql":"SELECT AVG(total_amount) AS average_order_amount FROM orders"}
+{"id":"G-016","sql":"SELECT MAX(total_amount) AS maximum_order_amount FROM orders"}
+{"id":"G-017","sql":"SELECT MIN(total_amount) AS minimum_order_amount FROM orders"}
+{"id":"G-018","sql":"SELECT order_id, total_amount FROM orders ORDER BY total_amount DESC, order_id LIMIT 5"}
+{"id":"G-019","sql":"SELECT order_id, total_amount FROM orders ORDER BY total_amount, order_id LIMIT 5"}
+{"id":"G-020","sql":"SELECT DISTINCT region FROM customers"}
+{"id":"G-021","sql":"SELECT status, COUNT(order_id) AS order_count FROM orders GROUP BY status"}
+{"id":"G-022","sql":"SELECT region, COUNT(customer_id) AS customer_count FROM customers GROUP BY region"}
+{"id":"G-023","sql":"SELECT grade, COUNT(customer_id) AS customer_count FROM customers GROUP BY grade"}
+{"id":"G-024","sql":"SELECT SUM(amount) AS completed_amount FROM payments WHERE status = 'COMPLETED'"}
+{"id":"G-025","sql":"SELECT AVG(amount) AS average_completed_amount FROM payments WHERE status = 'COMPLETED'"}
+{"id":"G-026","sql":"SELECT c.region, SUM(o.total_amount) AS total_order_amount FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id WHERE o.status = 'PAID' GROUP BY c.region"}
+{"id":"G-027","sql":"SELECT COUNT(o.order_id) AS order_count FROM orders o INNER JOIN payments p ON p.order_id = o.order_id WHERE o.status = 'PAID' AND p.status = 'COMPLETED'"}
+{"id":"G-028","sql":"SELECT c.name, COUNT(p.product_id) AS product_count FROM categories c LEFT JOIN products p ON p.category_id = c.category_id GROUP BY c.name"}
+{"id":"G-029","sql":"SELECT c.name, AVG(p.price) AS average_price FROM categories c INNER JOIN products p ON p.category_id = c.category_id GROUP BY c.name"}
+{"id":"G-030","sql":"SELECT p.product_id, SUM(oi.quantity) AS total_quantity FROM products p INNER JOIN order_items oi ON oi.product_id = p.product_id GROUP BY p.product_id"}
+{"id":"G-031","sql":"SELECT p.product_id, p.name, SUM(oi.quantity) AS total_quantity FROM products p INNER JOIN order_items oi ON oi.product_id = p.product_id GROUP BY p.product_id, p.name ORDER BY total_quantity DESC, p.product_id LIMIT 5"}
+{"id":"G-032","sql":"SELECT c.name, SUM(oi.quantity) AS total_quantity FROM categories c INNER JOIN products p ON p.category_id = c.category_id INNER JOIN order_items oi ON oi.product_id = p.product_id GROUP BY c.name ORDER BY total_quantity DESC, c.name"}
+{"id":"G-033","sql":"SELECT o.order_id FROM orders o INNER JOIN customers c ON c.customer_id = o.customer_id WHERE c.region = 'SEOUL' AND o.status = 'PAID' ORDER BY o.ordered_at, o.order_id"}
+{"id":"G-034","sql":"SELECT COUNT(payment_id) AS payment_count FROM payments WHERE status = 'COMPLETED' AND paid_at >= TIMESTAMPTZ '2026-07-05 00:00:00+00' AND paid_at < TIMESTAMPTZ '2026-07-08 00:00:00+00'"}
+{"id":"G-035","sql":"SELECT DATE_TRUNC('day', ordered_at) AS order_day, COUNT(order_id) AS order_count FROM orders WHERE ordered_at >= TIMESTAMPTZ '2026-07-01 00:00:00+00' AND ordered_at < TIMESTAMPTZ '2026-08-01 00:00:00+00' GROUP BY DATE_TRUNC('day', ordered_at) ORDER BY order_day"}
+{"id":"G-036","sql":"SELECT EXTRACT(hour FROM ordered_at) AS order_hour, COUNT(order_id) AS order_count FROM orders GROUP BY EXTRACT(hour FROM ordered_at)"}
+{"id":"G-037","sql":"SELECT product_id, price FROM products WHERE price > 5000 ORDER BY price, product_id"}
+{"id":"G-038","sql":"SELECT AVG(price) AS average_active_price FROM products WHERE active = TRUE"}
+{"id":"G-039","sql":"SELECT COUNT(customer_id) AS customer_count FROM customers WHERE created_at < TIMESTAMPTZ '2025-01-11 00:00:00+00'"}
+{"id":"G-040","sql":"SELECT order_id FROM orders WHERE total_amount > 1000000"}
+{"id":"G-041","sql":"SELECT COUNT(payment_id) AS payment_count FROM payments WHERE paid_at IS NULL"}
+{"id":"G-042","sql":"SELECT COUNT(payment_id) AS payment_count FROM payments WHERE paid_at IS NOT NULL"}
+{"id":"G-043","sql":"SELECT COUNT(order_id) AS order_count FROM orders WHERE total_amount > (SELECT AVG(total_amount) AS average_amount FROM orders)"}
+{"id":"G-044","sql":"SELECT DISTINCT customer_id FROM orders WHERE customer_id IN (SELECT customer_id FROM orders WHERE status = 'CANCELLED')"}
+{"id":"G-045","sql":"SELECT COUNT(product_id) AS product_count FROM products WHERE product_id NOT IN (SELECT product_id FROM order_items)"}
+{"id":"G-046","sql":"SELECT c.region, SUM(p.amount) AS completed_amount FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id INNER JOIN payments p ON p.order_id = o.order_id WHERE p.status = 'COMPLETED' GROUP BY c.region"}
+{"id":"G-047","sql":"SELECT COUNT(o.order_id) AS mismatch_count FROM orders o INNER JOIN payments p ON p.order_id = o.order_id WHERE o.total_amount <> p.amount"}
+{"id":"G-048","sql":"SELECT SUM(quantity * unit_price) AS line_total FROM order_items"}
+{"id":"G-049","sql":"SELECT c.name FROM categories c INNER JOIN products p ON p.category_id = c.category_id GROUP BY c.name HAVING AVG(p.price) > 4000"}
+{"id":"G-050","sql":"SELECT c.customer_id, COUNT(o.order_id) AS order_count FROM customers c INNER JOIN orders o ON o.customer_id = c.customer_id GROUP BY c.customer_id ORDER BY order_count DESC, c.customer_id LIMIT 10"}

@@ -1,0 +1,50 @@
+{"id":"NL-001","question":"전체 주문 수를 알려줘","goldenSqlId":"G-001","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-002","question":"결제 완료 상태인 주문 수를 알려줘","goldenSqlId":"G-002","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-003","question":"취소된 주문 수를 알려줘","goldenSqlId":"G-003","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-004","question":"대기 중인 주문 수를 알려줘","goldenSqlId":"G-004","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-005","question":"배송된 주문 수를 알려줘","goldenSqlId":"G-005","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-006","question":"완료된 결제 건수를 알려줘","goldenSqlId":"G-006","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-007","question":"완료되지 않은 결제 건수를 알려줘","goldenSqlId":"G-007","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-008","question":"현재 활성 상품 수를 알려줘","goldenSqlId":"G-008","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-009","question":"비활성 상품의 이름을 상품 번호 순으로 보여줘","goldenSqlId":"G-009","comparison":"ORDERED","difficulty":"EASY"}
+{"id":"NL-010","question":"서울 지역 고객 수를 알려줘","goldenSqlId":"G-010","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-011","question":"골드 등급 고객 수를 알려줘","goldenSqlId":"G-011","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-012","question":"2026년 7월 1일에 생성된 주문 수를 알려줘","goldenSqlId":"G-012","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-013","question":"2026년 7월 10일 이후 주문 수를 알려줘","goldenSqlId":"G-013","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-014","question":"전체 주문 금액 합계를 알려줘","goldenSqlId":"G-014","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-015","question":"전체 주문의 평균 금액을 알려줘","goldenSqlId":"G-015","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-016","question":"가장 큰 주문 금액을 알려줘","goldenSqlId":"G-016","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-017","question":"가장 작은 주문 금액을 알려줘","goldenSqlId":"G-017","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-018","question":"주문 금액이 큰 상위 5개 주문의 번호와 금액을 보여줘","goldenSqlId":"G-018","comparison":"ORDERED","difficulty":"EASY"}
+{"id":"NL-019","question":"주문 금액이 작은 하위 5개 주문의 번호와 금액을 보여줘","goldenSqlId":"G-019","comparison":"ORDERED","difficulty":"EASY"}
+{"id":"NL-020","question":"고객 지역 목록을 중복 없이 알려줘","goldenSqlId":"G-020","comparison":"UNORDERED","difficulty":"EASY"}
+{"id":"NL-021","question":"주문 상태별 주문 건수를 알려줘","goldenSqlId":"G-021","comparison":"UNORDERED","difficulty":"MEDIUM"}
+{"id":"NL-022","question":"지역별 고객 수를 알려줘","goldenSqlId":"G-022","comparison":"UNORDERED","difficulty":"MEDIUM"}
+{"id":"NL-023","question":"고객 등급별 고객 수를 알려줘","goldenSqlId":"G-023","comparison":"UNORDERED","difficulty":"MEDIUM"}
+{"id":"NL-024","question":"완료된 결제의 총 결제 금액을 알려줘","goldenSqlId":"G-024","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-025","question":"완료된 결제의 평균 결제 금액을 알려줘","goldenSqlId":"G-025","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-026","question":"결제 완료 주문의 지역별 주문 금액 합계를 알려줘","goldenSqlId":"G-026","comparison":"UNORDERED","difficulty":"MEDIUM"}
+{"id":"NL-027","question":"주문 상태도 결제 완료이고 결제 상태도 완료인 주문 수를 알려줘","goldenSqlId":"G-027","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-028","question":"카테고리별 상품 수를 알려줘","goldenSqlId":"G-028","comparison":"UNORDERED","difficulty":"MEDIUM"}
+{"id":"NL-029","question":"카테고리별 평균 상품 가격을 알려줘","goldenSqlId":"G-029","comparison":"UNORDERED","difficulty":"MEDIUM"}
+{"id":"NL-030","question":"상품별 판매 수량 합계를 알려줘","goldenSqlId":"G-030","comparison":"UNORDERED","difficulty":"MEDIUM"}
+{"id":"NL-031","question":"판매 수량이 많은 상품 상위 5개를 동률이면 상품 번호 순으로 보여줘","goldenSqlId":"G-031","comparison":"ORDERED","difficulty":"HARD"}
+{"id":"NL-032","question":"판매 수량이 가장 많은 카테고리부터 순서대로 보여줘","goldenSqlId":"G-032","comparison":"ORDERED","difficulty":"HARD"}
+{"id":"NL-033","question":"서울 고객의 결제 완료 주문 번호를 시간순으로 보여줘","goldenSqlId":"G-033","comparison":"ORDERED","difficulty":"MEDIUM"}
+{"id":"NL-034","question":"2026년 7월 5일부터 7월 8일 직전까지 완료된 결제 수를 알려줘","goldenSqlId":"G-034","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-035","question":"2026년 7월의 일자별 주문 건수를 날짜순으로 알려줘","goldenSqlId":"G-035","comparison":"ORDERED","difficulty":"MEDIUM"}
+{"id":"NL-036","question":"주문이 생성된 시간대별 주문 건수를 알려줘","goldenSqlId":"G-036","comparison":"UNORDERED","difficulty":"MEDIUM"}
+{"id":"NL-037","question":"가격이 5000원보다 비싼 상품의 번호와 가격을 가격순으로 보여줘","goldenSqlId":"G-037","comparison":"ORDERED","difficulty":"EASY"}
+{"id":"NL-038","question":"활성 상품의 평균 가격을 알려줘","goldenSqlId":"G-038","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-039","question":"2025년 1월 11일 전에 가입한 고객 수를 알려줘","goldenSqlId":"G-039","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-040","question":"주문 금액이 백만원을 넘는 주문 번호를 알려줘","goldenSqlId":"G-040","comparison":"UNORDERED","difficulty":"EASY"}
+{"id":"NL-041","question":"결제 완료 시간이 없는 결제 건수를 알려줘","goldenSqlId":"G-041","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-042","question":"결제 완료 시간이 있는 결제 건수를 알려줘","goldenSqlId":"G-042","comparison":"SCALAR","difficulty":"EASY"}
+{"id":"NL-043","question":"평균 주문 금액보다 큰 주문 수를 알려줘","goldenSqlId":"G-043","comparison":"SCALAR","difficulty":"HARD"}
+{"id":"NL-044","question":"취소 주문을 한 적이 있는 고객의 번호를 중복 없이 알려줘","goldenSqlId":"G-044","comparison":"UNORDERED","difficulty":"HARD"}
+{"id":"NL-045","question":"한 번도 주문되지 않은 상품 수를 알려줘","goldenSqlId":"G-045","comparison":"SCALAR","difficulty":"HARD"}
+{"id":"NL-046","question":"완료된 결제 금액을 고객 지역별로 합산해 알려줘","goldenSqlId":"G-046","comparison":"UNORDERED","difficulty":"HARD"}
+{"id":"NL-047","question":"주문 금액과 결제 금액이 다른 주문 수를 알려줘","goldenSqlId":"G-047","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-048","question":"모든 주문 상품의 수량 곱하기 단가 합계를 알려줘","goldenSqlId":"G-048","comparison":"SCALAR","difficulty":"MEDIUM"}
+{"id":"NL-049","question":"평균 상품 가격이 4000원보다 높은 카테고리 이름을 알려줘","goldenSqlId":"G-049","comparison":"UNORDERED","difficulty":"HARD"}
+{"id":"NL-050","question":"주문 횟수가 많은 고객 상위 10명을 동률이면 고객 번호 순으로 보여줘","goldenSqlId":"G-050","comparison":"ORDERED","difficulty":"HARD"}
