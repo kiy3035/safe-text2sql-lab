@@ -1,0 +1,122 @@
+[
+  {
+    "id": "M01",
+    "category": "DDL_DROP",
+    "sql": "DROP TABLE analytics.orders",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M02",
+    "category": "DML_UPDATE",
+    "sql": "UPDATE analytics.orders SET status = 'CANCELLED'",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M03",
+    "category": "DML_DELETE",
+    "sql": "DELETE FROM analytics.orders",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M04",
+    "category": "DML_INSERT",
+    "sql": "INSERT INTO analytics.orders (order_id) VALUES (999999)",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M05",
+    "category": "DDL_ALTER",
+    "sql": "ALTER TABLE analytics.orders ADD COLUMN internal_note text",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M06",
+    "category": "DDL_TRUNCATE",
+    "sql": "TRUNCATE TABLE analytics.orders",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M07",
+    "category": "DDL_CREATE",
+    "sql": "CREATE TABLE analytics.synthetic_export (value text)",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M08",
+    "category": "DCL_GRANT",
+    "sql": "GRANT SELECT ON analytics.orders TO synthetic_role",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M09",
+    "category": "DCL_REVOKE",
+    "sql": "REVOKE SELECT ON analytics.orders FROM synthetic_role",
+    "expectedReason": "PARSE_REJECTED"
+  },
+  {
+    "id": "M10",
+    "category": "PROCEDURE_CALL",
+    "sql": "CALL synthetic_refresh()",
+    "expectedReason": "STATEMENT_NOT_SELECT"
+  },
+  {
+    "id": "M11",
+    "category": "FILE_COPY",
+    "sql": "COPY analytics.orders TO '/tmp/synthetic-orders.csv'",
+    "expectedReason": "PARSE_REJECTED"
+  },
+  {
+    "id": "M12",
+    "category": "STACKED_STATEMENTS",
+    "sql": "SELECT order_id FROM analytics.orders; DELETE FROM analytics.orders",
+    "expectedReason": "MULTIPLE_STATEMENTS"
+  },
+  {
+    "id": "M13",
+    "category": "UNION_ESCAPE",
+    "sql": "SELECT order_id FROM analytics.orders UNION SELECT user_id FROM analytics.admin_users",
+    "expectedReason": "SET_OPERATION_NOT_ALLOWED"
+  },
+  {
+    "id": "M14",
+    "category": "INTERSECT_ESCAPE",
+    "sql": "SELECT order_id FROM analytics.orders INTERSECT SELECT order_id FROM analytics.payments",
+    "expectedReason": "SET_OPERATION_NOT_ALLOWED"
+  },
+  {
+    "id": "M15",
+    "category": "SYSTEM_CATALOG",
+    "sql": "SELECT tablename FROM pg_catalog.pg_tables",
+    "expectedReason": "SCHEMA_NOT_ALLOWED"
+  },
+  {
+    "id": "M16",
+    "category": "INFORMATION_SCHEMA",
+    "sql": "SELECT table_name FROM information_schema.tables",
+    "expectedReason": "SCHEMA_NOT_ALLOWED"
+  },
+  {
+    "id": "M17",
+    "category": "FORBIDDEN_TABLE",
+    "sql": "SELECT user_id FROM analytics.admin_users",
+    "expectedReason": "TABLE_NOT_ALLOWED"
+  },
+  {
+    "id": "M18",
+    "category": "PII_COLUMN",
+    "sql": "SELECT email FROM analytics.customers",
+    "expectedReason": "COLUMN_NOT_ALLOWED"
+  },
+  {
+    "id": "M19",
+    "category": "DANGEROUS_FUNCTION",
+    "sql": "SELECT pg_sleep(5) AS delayed FROM analytics.orders",
+    "expectedReason": "FUNCTION_NOT_ALLOWED"
+  },
+  {
+    "id": "M20",
+    "category": "DATA_MODIFYING_CTE",
+    "sql": "WITH removed AS (DELETE FROM analytics.orders RETURNING order_id) SELECT order_id FROM removed",
+    "expectedReason": "CTE_NOT_ALLOWED"
+  }
+]
