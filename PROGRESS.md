@@ -1,95 +1,93 @@
 # 작업 진행 상황
 
-마지막 갱신: 2026-08-30 (Asia/Seoul)
+마지막 갱신: 2026-08-31 (Asia/Seoul)
 
 ## 1. 완료한 작업
 
-### 1~4단계
+### 1~4단계: 실행 가능한 안전 경계
 
-- Java 21, Spring Boot 3.5.16, Gradle 8.12.1, PostgreSQL 16.9 기반 프로젝트와 합성 DB를 구성했다.
-- Flyway migration 계정 `text2sql_migration`과 최소 컬럼 SELECT 권한만 가진 `text2sql_ro`를 분리했다.
-- Ollama HTTP adapter, Scripted/Fake LLM, WireMock 검증을 구현했다. Ollama와 모델은 설치하지 않았다.
-- JSqlParser AST 기반 SELECT-only 검증, schema/table/column/function Allowlist, alias·서브쿼리 검증과
-  악의적 SQL 20건 실행기 미호출 테스트를 구현했다.
-- `ValidatedSelect`만 받는 Native Query 실행기, 결과 행 상한, PostgreSQL statement timeout,
-  최대 3회 호출과 200ms/400ms 백오프, REST API를 구현했다.
-- 3단계 PR #1과 4단계 PR #2는 사용자가 확인해 `master`에 병합했다.
+- Java 21, Spring Boot 3.5.16, Gradle 8.12.1, PostgreSQL 16.9 프로젝트와 합성 커머스 DB를 구성했다.
+- Flyway migration 계정 `text2sql_migration`과 공개 컬럼 SELECT만 가능한 `text2sql_ro`를 분리했다.
+- 로컬 Ollama `SqlGenerator`, Scripted/Fake LLM, WireMock adapter 테스트를 구현했다.
+- JSqlParser AST 기반 단일 SELECT·Allowlist 검증과 악의적 SQL 20건 fixture를 구현했다.
+- `ValidatedSelect`만 받는 Native Query 실행기, 행 상한, DB statement timeout, 최대 3회 호출과
+  200ms/400ms 백오프, REST API를 구현했다.
+- 3단계 PR #1과 4단계 PR #2가 `master`에 병합됐다.
 
 ### 5단계: 측정 실험
 
-- `experiments/nl-questions.jsonl`에 자연어 질문 정확히 50건을 고정했다.
-  - 난이도와 `SCALAR`, `ORDERED`, `UNORDERED` 결과 비교 모드를 각 질문에 명시했다.
-- `experiments/golden-sql.jsonl`에 질문과 1:1로 연결된 Golden SQL 50건을 분리했다.
-  - 문자열 일치가 아니라 고정 seed DB의 결과 집합을 숫자 정규화·순서·중복 정책에 따라 비교한다.
-  - fixture 개수, ID 중복/누락, 난이도 분포, 모든 Golden SQL의 AST 검증을 자동 테스트한다.
-- 자연어 정확도 실험 runner를 구현했다.
-  - 생성 SQL은 기존 `Text2SqlQueryService`의 검증·재시도·실행 경계를 그대로 통과한다.
-  - Golden SQL도 AST 검증과 read-only Native Query 실행기를 통과한다.
-  - Ollama가 없으면 Golden 50건만 검증·실행하고 정확도는 `PENDING`으로 기록한다.
-  - `metadata.json`, `nl-summary.json`, `nl-results.json`, `nl-results.csv`를 생성한다.
-- 인덱스 전후 실험 runner를 구현했다.
-  - 50,100개 주문 benchmark seed가 없으면 실행을 거부한다.
-  - 외부 입력이 아닌 고정 SELECT 3개와 고정 후보 인덱스 `(status, ordered_at)`만 사용한다.
-  - 전후 각 조회를 1회 예열하고 10회 측정한다.
-  - `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` 원본 60개와 전체 측정 JSON·요약 CSV를 남긴다.
-  - DDL은 migration 계정, EXPLAIN SELECT는 read-only 계정으로 분리하고 finally에서 후보 인덱스를 제거한다.
-- WireMock 재시도 측정 runner를 구현했다.
-  - `500→500→200`, `500→500→500`, `400`을 각각 10회 측정했다.
-  - 실제 Ollama HTTP adapter와 실제 200ms/400ms sleep을 사용하고 요청 간격·전체 경과시간을 기록했다.
-- 모든 결과에 commit SHA, 실행 시각, OS, CPU, RAM, Java, PostgreSQL, Ollama/model/temperature,
-  prompt hash와 데이터 건수를 해당되는 범위에서 기록했다. DB 비밀번호와 URL은 기록하지 않았다.
-- 실험 중 발견한 PostgreSQL Native Query의 LIMIT 중복 적용 결함을 수정했다.
-  - 최상위 LIMIT/FETCH 여부를 문자열이 아닌 검증된 AST에서 `ValidatedSelect`에 기록한다.
-  - 명시적 제한은 AST에서 최대 200행으로 제한되므로 Hibernate의 중복 `setMaxResults`를 생략한다.
-  - 실행 설정이 더 작으면 응답은 계속 해당 상한으로 자르고 `truncated=true`를 반환한다.
+- 자연어 질문과 Golden SQL 각 50건, `SCALAR`/`ORDERED`/`UNORDERED` 결과 비교기를 구현했다.
+- Ollama가 없을 때 Golden 50건만 검증·실행하고 정확도는 `PENDING`으로 남기는 runner를 구현했다.
+- 50,100행에서 고정 SELECT 3개의 인덱스 전후 실행계획을 각 10회 측정하고 원본 JSON 60개를 보존했다.
+- WireMock으로 `500→500→200`, `500→500→500`, `400`을 각 10회 실제 백오프와 함께 측정했다.
+- 결과에 실행환경, 데이터 건수, 모델 상태, prompt hash, 측정 코드 SHA와 실행 시각을 기록했다.
+- 실험에서 발견한 Hibernate의 기존 LIMIT 뒤 중복 FETCH 문제를 AST 표식과 회귀 테스트로 수정했다.
+- 5단계 PR #3이 merge commit `c4e23bffb4dfbeb0bdd22fcbea0e9881f603f3b0`으로 병합됐다.
+
+### 6단계: 문서와 블로그
+
+- `docs/architecture.md`에 요청 흐름, 신뢰 경계, AST gate, 재시도, DB 계정과 실험 구조를 작성했다.
+- `docs/threat-model.md`에 막도록 설계한 위협과 근거, 막지 못하는 정확성·추론·가용성·운영 한계를 분리했다.
+- `docs/experiment-report.md`에 테스트, 자연어 PENDING, 인덱스, 재시도 결과를 원본 경로와 함께 기록했다.
+- `docs/blog-draft.md`에 실제 구현·실패·측정값만 사용한 한국어 블로그 초안을 작성했다.
+  - 회사·운영 경험처럼 표현하지 않았다.
+  - 악의적 SQL 20건 차단을 모든 SQL 공격의 완전한 증명으로 일반화하지 않았다.
+  - 자연어 50건 정확도를 `PENDING`으로 유지하고 Fake 결과를 실측값으로 쓰지 않았다.
+  - 인덱스와 WireMock 수치의 로컬 환경·캐시·표본·초기화 비용 한계를 함께 적었다.
+- `scripts/verify_documented_results.ps1`를 추가했다.
+  - 질문/Golden 각 50건, 악의적 fixture 20건, plan 60개, retry 원본 30개를 확인한다.
+  - 인덱스 중앙값·최소·최대·p95와 파생 비율, 재시도 요약, 측정 SHA를 보고서·블로그와 대조한다.
+  - 자연어 정확도가 `PENDING/null`인지와 전체 Gradle 테스트 XML 수치를 확인한다.
+- README에 문서 링크, 실제 로컬 모델을 사용자가 별도로 준비하는 명령, 별도 Compose project를
+  사용하는 빈 환경 재현 절차와 문서 수치 검증 명령을 추가했다.
+- `docs/decisions.md`에 문서 분리, 원본 수치 단일 출처, PENDING 유지, 재현 DB 격리 결정을 기록했다.
 
 ## 2. 실제 실행한 테스트와 결과
 
-### 최종 전체 테스트
+### 6단계 최종 전체 테스트
 
 - 명령:
   `$env:DOCKER_HOST='npipe:////./pipe/docker_engine'; .\gradlew.bat --no-daemon test --rerun-tasks`
 - 결과: `BUILD SUCCESSFUL`, 91개 통과, 실패 0, 오류 0, 건너뜀 0.
 - 포함 확인:
   - 악의적 SQL fixture 20건 모두 Native Query executor 호출 0회
-  - Golden SQL 50건 모두 PostgreSQL 16.9 고정 smoke seed에서 문법·권한 오류 없이 실행
-  - LIMIT 5 정상 실행, 실행 상한 10보다 큰 LIMIT 20은 10행만 반환하고 `truncated=true`
-  - `500→500→200` 정확히 3회 후 성공, `500→500→500` 3회 후 종료, `400` 즉시 종료
-  - 단순 조회, JOIN, 집계, 서브쿼리 허용 및 금지 테이블·컬럼·함수·UNION·다중 문장 차단
+  - `500→500→200` 3회 후 성공, `500→500→500` 3회 후 종료, `400` 즉시 종료
+  - 단순 SELECT, JOIN, 집계, 서브쿼리 허용
+  - 금지 테이블·컬럼·함수·UNION·다중 문장 차단
+  - PostgreSQL 실제 read-only 권한, 행 상한, statement timeout, LIMIT 회귀
+  - Golden SQL 50건의 AST 검증과 고정 seed DB 실행
 
-### 자연어 50건 실험
+### 문서 수치와 링크 검증
 
-- 결과 디렉터리: `results/stage5-nl-pending-20260830`
-- 코드 SHA: `5c94665238b49b41a214ac8247c0aa59929f74b6`
-- Golden SQL 50건 AST 검증과 read-only Native Query 실행: 성공.
-- 상태: `PENDING`, 사유: `OLLAMA_NOT_CONFIGURED`.
-- 정확도·생성 성공률·첫 시도 검증 통과율은 측정하지 않았으며 모두 `null`로 기록했다.
-- Ollama 프로그램과 로컬 모델을 설치·실행하지 않았고 Fake 결과를 실측 정확도로 사용하지 않았다.
+- 명령: `.\scripts\verify_documented_results.ps1`
+- 결과:
+  `DOCUMENTED_RESULTS_VERIFIED questions=50 golden=50 malicious=20 plans=60 retry=30 tests=91 failures=0 skipped=0`
+- Markdown 상대 링크 검사 결과: `MARKDOWN_LINKS_OK`.
+- 자연어 결과의 `status=PENDING`, `pendingReason=OLLAMA_NOT_CONFIGURED`, 정확도 관련 null 값을 재확인했다.
 
-### 인덱스 전후 실험
+### README 새 환경 재현
 
-- 결과 디렉터리: `results/stage5-index-20260830`
-- 코드 SHA: `5c94665238b49b41a214ac8247c0aa59929f74b6`
-- 데이터: orders/order_items/payments 각 50,100행, PostgreSQL 16.9.
-- 고정 조회 3개 × 전후 2조건 × 10회 = 원본 실행계획 JSON 60개 생성.
-- 이번 로컬 실행의 중앙 실행시간:
-  - IDX-001: Seq Scan 3.5685ms → Bitmap Heap Scan 0.3445ms
-  - IDX-002: Seq Scan 4.1380ms → Index Scan 0.0945ms
-  - IDX-003: Seq Scan 5.0655ms → Bitmap Heap Scan 1.7835ms
-- 위 수치는 한 환경의 10회 측정 결과이며 다른 환경의 성능을 보장하지 않는다. 최소·최대·p95와
-  planner/actual rows, buffer hit/read 수치는 `index-summary.csv`와 원본 JSON에 함께 보존했다.
+- 별도 Compose project `safe-text2sql-stage6-readme-check`와 새 volume을 사용했다.
+- PostgreSQL 16.9 health 확인 후 Flyway migration 3개가 새 `analytics` schema에 적용됐다.
+- `SQL_GENERATOR_PROVIDER=disabled`, 별도 포트에서 `bootRun`으로 애플리케이션을 기동했다.
+- 실제 확인:
+  - `GET /actuator/health`: `UP`
+  - `POST /api/v1/text2sql/query`: HTTP 502, `LLM_UNAVAILABLE`, `attemptCount=0`
+- 확인 후 장기 실행 중인 Java 프로세스를 종료했고, 해당 Compose project의 컨테이너·network·volume만 제거했다.
 
-### LLM HTTP 재시도 측정
+### 보존된 5단계 측정 결과
 
-- 결과 디렉터리: `results/stage5-retry-20260830`
-- 코드 SHA: `5c94665238b49b41a214ac8247c0aa59929f74b6`
-- 각 시나리오 10회, 총 30회 측정. 모든 반복에서 예상 HTTP 호출 수와 결과 유형을 만족했다.
-- 중앙값:
-  - `500→500→200`: 전체 680.0ms, 첫/둘째 요청 간격 229.0ms/426.0ms
-  - `500→500→500`: 전체 672.0ms, 첫/둘째 요청 간격 229.0ms/427.0ms
-  - `400`: 전체 12.0ms, HTTP 호출 1회, 재시도 없음
-- 첫 성공 시나리오에는 JVM/HTTP 초기화 비용이 포함되어 max와 p95가 1497.0ms다. 원본 30건을
-  삭제하지 않고 `retry-measurements.json`에 보존했다.
+- 자연어: Golden 50건 실행 성공, 실제 모델 정확도 `PENDING`.
+- 인덱스 중앙 실행시간:
+  - IDX-001: 3.5685ms → 0.3445ms
+  - IDX-002: 4.1380ms → 0.0945ms
+  - IDX-003: 5.0655ms → 1.7835ms
+- 재시도 중앙값:
+  - `500→500→200`: 680.0ms, HTTP 3회 후 성공
+  - `500→500→500`: 672.0ms, HTTP 3회 후 종료
+  - `400`: 12.0ms, HTTP 1회 후 즉시 종료
+- 세 결과의 측정 코드 SHA:
+  `5c94665238b49b41a214ac8247c0aa59929f74b6`.
 
 ### 실행 환경
 
@@ -98,52 +96,52 @@
 - RAM: 8,379,490,304 bytes
 - Java: Eclipse Temurin 21.0.8
 - Docker Engine: 24.0.7
-- PostgreSQL: 16.9 Alpine image
+- PostgreSQL: 16.9 Alpine
 - Ollama: `NOT_INSTALLED`
 - 로컬 LLM 모델: `PENDING`
 
 ## 3. 현재 정상 동작하는 기능
 
-- 자연어 50건과 Golden SQL 50건의 형식·연결·AST·DB 실행을 자동 검증한다.
-- Ollama가 준비되면 기존 보안 파이프라인으로 50건을 실행해 결과 집합 정확도와 세부 실패를 기록한다.
-- Ollama가 없으면 실제 정확도를 만들지 않고 명시적인 PENDING 결과만 생성한다.
-- benchmark DB에서 인덱스 전후 실행계획 원본과 반복 통계를 재현 가능하게 생성한다.
-- WireMock으로 실제 HTTP 재시도 호출 수와 200ms/400ms 지연을 반복 측정한다.
-- 1~4단계의 DB 최소 권한, AST gate, 실행 상한, timeout, 오류별 재시도와 API가 계속 동작한다.
+- Spring API가 자연어 질문을 LLM 생성, AST 검증, read-only Native Query 순서로 처리한다.
+- 거절 SQL은 실행기에 도달하지 않고, 재생성된 SQL도 매번 동일한 gate를 통과한다.
+- DB 최소 권한, 결과 행 상한, statement timeout, 오류별 최대 3회 호출 정책이 독립적으로 동작한다.
+- Ollama가 없는 기본 설정에서도 애플리케이션이 기동되고 안정적인 502 오류를 반환한다.
+- 질문·Golden·보안 fixture와 세 측정 runner를 로컬 무료 도구로 재현할 수 있다.
+- 아키텍처·위협 모델·보고서·블로그의 측정 수치를 원본 CSV/JSON으로 역추적할 수 있다.
 
 ## 4. 미완료 작업
 
-- 자연어 50건의 실제 로컬 LLM 정확도 측정은 Ollama와 모델이 없으므로 `PENDING`이다.
-- 5단계 구현·자동 테스트·Golden 실행·인덱스 및 WireMock 측정은 완료했다. PR의 사용자 검토·병합이 남았다.
-- 아키텍처 문서, 위협 모델과 남은 한계, 실험 결과 보고서, 블로그 초안, README 빈 환경 재현 검증은 6단계다.
-- 측정 결과를 블로그 결론으로 해석하거나 일반화하는 6단계 작업은 시작하지 않았다.
+- 자연어 50건의 실제 로컬 LLM 정확도는 Ollama와 모델이 없으므로 `PENDING`이다.
+- Ollama 프로그램·모델 설치, 실제 추론 실행, 모델 출처·라이선스 검토는 수행하지 않았다.
+- 인증·사용자별 권한·rate limit·운영 모니터링·TLS·다중 tenant 격리는 프로젝트 범위 밖이다.
+- 6단계 구현과 검증은 완료했으며, 6단계 PR의 사용자 검토·병합이 남았다.
 
 ## 5. 발생한 오류와 확인된 원인
 
-- 첫 자연어 PENDING 실행에서 Golden의 기존 `LIMIT` 뒤에 Hibernate가 `FETCH`를 덧붙여 PostgreSQL
-  문법 오류가 발생했다. 최상위 LIMIT/FETCH를 AST 결과에 기록해 중복 제한을 피하고, LIMIT 5/20
-  PostgreSQL 회귀 테스트와 Golden 50건 실행으로 해결을 확인했다.
-- Windows Testcontainers는 named pipe를 자동 탐지하지 못해
-  `DOCKER_HOST=npipe:////./pipe/docker_engine`가 필요했다.
-- 실험 도중 Docker Desktop daemon이 종료되어 통합 테스트가 1회 초기화 실패했다. 기존 Docker
-  Desktop만 다시 시작했으며 설치·관리자 권한 변경 없이 같은 테스트가 통과했다.
-- 제한된 sandbox에서 실행한 Docker 없는 전체 테스트는 통합 테스트 8건이 초기화 실패했다.
-  코드 실패가 아니라 Docker 환경 부재임을 XML에서 확인했고 named pipe 설정 실행으로 검증했다.
-- Ollama가 설치되지 않아 자연어 정확도는 측정할 수 없었다. 규칙에 따라 수치를 추정하지 않고 PENDING으로 남겼다.
+- Windows Testcontainers는 Docker named pipe를 자동 탐지하지 못해
+  `DOCKER_HOST=npipe:////./pipe/docker_engine`를 명시했다.
+- 5단계 첫 자연어 실행은 기존 LIMIT 뒤 Hibernate가 FETCH를 중복 생성해 실패했다. 최상위
+  LIMIT/FETCH를 검증 AST 결과에 기록해 해결했고 PostgreSQL 회귀 테스트와 Golden 50건으로 확인했다.
+- 6단계 README 재현에서 health/API 확인 후 장기 실행 중인 `bootRun` Java 프로세스를 의도적으로
+  종료했다. 애플리케이션 기동 검증은 성공했지만 Gradle task는 강제 종료 코드 `-1`로 `FAILED`를
+  표시했다. 테스트 실패나 애플리케이션 시작 실패가 아니다.
+- Ollama가 없어 실제 자연어 정확도를 측정할 수 없었다. 수치를 만들지 않고 PENDING으로 남겼다.
 
 ## 6. 다음 대화에서 바로 시작할 작업
 
-5단계 PR을 사용자가 확인·병합하고 `계속 진행해`라고 요청한 경우에만 6단계를 시작한다.
+6단계 PR을 사용자가 확인·병합하기 전에는 추가 주요 작업을 시작하지 않는다.
 
-1. `AGENTS.md`, `PROJECT_SPEC.md`, 이 파일을 끝까지 다시 읽는다.
-2. 결과 파일을 근거로 아키텍처와 위협 모델·남은 한계를 문서화한다.
-3. 인덱스와 재시도 측정 결과 보고서를 작성하고 모든 수치를 원본 CSV/JSON과 대조한다.
-4. 자연어 정확도는 Ollama 실측 전까지 PENDING임을 유지한다.
-5. 실제 측정값만 사용한 블로그 초안과 빈 환경 README 재현 절차를 검증한다.
+병합 후에도 자동으로 새 단계를 시작하지 않는다. 사용자가 Ollama와 특정 로컬 모델을 직접 준비한
+뒤 실제 자연어 50건 재측정을 명시적으로 요청하는 경우에만 다음을 수행한다.
+
+1. 모델명·버전, Ollama 버전과 라이선스를 확인한다.
+2. 기존 `nlExperiment`로 50건을 실행하고 새 run ID 결과를 추가한다.
+3. 결과 보고서와 블로그의 PENDING 항목만 실제 원본 수치로 갱신한다.
+4. 전체 테스트와 문서 수치 검증을 다시 실행한다.
 
 ## 7. 실행 및 재현 명령어
 
-PowerShell 공통 DB 설정(비밀번호는 로컬 값만 사용):
+PowerShell 공통 설정:
 
 ```powershell
 $env:DB_NAME = 'text2sql'
@@ -153,45 +151,42 @@ $env:APP_DB_PASSWORD = '<local-readonly-password>'
 $env:DOCKER_HOST = 'npipe:////./pipe/docker_engine'
 ```
 
-전체 테스트:
+애플리케이션과 DB:
+
+```powershell
+docker compose up -d --wait postgres
+.\gradlew.bat bootRun
+```
+
+전체 테스트와 문서 수치 검증:
 
 ```powershell
 .\gradlew.bat test --rerun-tasks
+.\scripts\verify_documented_results.ps1
 ```
 
-Ollama 없이 Golden 50건 실행과 PENDING 결과 생성:
+Ollama 없는 자연어 PENDING, 인덱스, 재시도 실험:
 
 ```powershell
 $env:SQL_GENERATOR_PROVIDER = 'disabled'
 $env:OLLAMA_VERSION = 'NOT_INSTALLED'
 $env:EXPERIMENT_RUN_ID = 'my-nl-pending-run'
-docker compose up -d --wait postgres
 .\gradlew.bat nlExperiment
-docker compose down
-```
 
-50,100행 benchmark DB에서 인덱스 전후 실험:
-
-```powershell
 $env:DB_FLYWAY_LOCATIONS = 'classpath:db/migration,classpath:db/benchmark'
 $env:EXPERIMENT_RUN_ID = 'my-index-run'
-docker compose up -d --wait postgres
 .\gradlew.bat indexExperiment
-docker compose down
-```
 
-WireMock 재시도 측정(Docker·Ollama 불필요):
-
-```powershell
 $env:EXPERIMENT_RUN_ID = 'my-retry-run'
 .\gradlew.bat retryExperiment
 ```
 
-이미 준비된 Ollama로 실제 자연어 50건을 측정할 때만 다음을 추가한다. 모델 설치 명령은 이 단계에서 실행하지 않았다.
+실제 모델 명령은 Ollama를 사용자가 별도로 준비한 경우에만 실행한다.
 
 ```powershell
+ollama pull <local-model-name-and-version>
+ollama list
 $env:SQL_GENERATOR_PROVIDER = 'ollama'
-$env:OLLAMA_BASE_URL = 'http://localhost:11434'
 $env:OLLAMA_MODEL = '<local-model-name-and-version>'
 $env:OLLAMA_VERSION = '<installed-ollama-version>'
 $env:LLM_TEMPERATURE = '0'
@@ -201,14 +196,11 @@ $env:EXPERIMENT_RUN_ID = 'my-nl-ollama-run'
 
 ## 8. 변경한 주요 파일
 
-- fixture: `experiments/nl-questions.jsonl`, `experiments/golden-sql.jsonl`
-- 공통 메타데이터: `src/main/java/dev/safetext2sql/experiment/*`
-- 자연어 실험: `src/main/java/dev/safetext2sql/experiment/nl/*`
-- 인덱스 실험: `src/main/java/dev/safetext2sql/experiment/index/*`
-- 재시도 측정: `src/test/java/dev/safetext2sql/experiment/retry/RetryMeasurementMain.java`
-- 실행 태스크: `build.gradle`
-- LIMIT 회귀 수정: `ValidatedSelect.java`, `AstSqlValidator.java`, `NativeQueryExecutor.java`
-- 테스트: `src/test/java/dev/safetext2sql/experiment/*`, `DatabaseIntegrationTest.java`, `AstSqlValidatorTest.java`
-- 결과: `results/stage5-nl-pending-20260830`, `results/stage5-index-20260830`,
-  `results/stage5-retry-20260830`
-- 문서: `README.md`, `docs/decisions.md`, `PROGRESS.md`
+- 아키텍처: `docs/architecture.md`
+- 위협 모델: `docs/threat-model.md`
+- 실험 결과 보고서: `docs/experiment-report.md`
+- 블로그 초안: `docs/blog-draft.md`
+- 수치 검증: `scripts/verify_documented_results.ps1`
+- 재현 절차와 문서 색인: `README.md`
+- 기술 결정: `docs/decisions.md`
+- 진행 기록: `PROGRESS.md`

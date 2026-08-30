@@ -69,7 +69,7 @@ foreach ($expected in $difficultyRows) {
             -or $ordered -ne $expected.Ordered -or $unordered -ne $expected.Unordered) {
         throw "Question distribution changed for $($expected.Difficulty)."
     }
-    $expectedRow = '| {0} | {1} | {2} | {3} | {4} |' -f 
+    $expectedRow = '| {0} | {1} | {2} | {3} | {4} |' -f
         $expected.Difficulty, $expected.Scalar, $expected.Ordered, $expected.Unordered, $expected.Total
     Assert-ContainsText 'experiment report' $report $expectedRow
 }
