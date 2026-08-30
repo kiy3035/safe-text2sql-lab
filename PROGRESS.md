@@ -40,6 +40,7 @@
 - 합성 이름만 사용한 악의적 SQL fixture를 정확히 20건으로 고정하고, 모두 거절되며 테스트용 Native Query 실행 경계가 0회 호출되는지 검증했다.
 - Java 소스의 역할과 보안 판단을 따라갈 수 있도록 상세한 한글 Javadoc과 주석을 추가하고 이 규칙을 `AGENTS.md`에 기록했다.
 - 이후 주요 단계는 독립 브랜치와 PR로 제출하고, 변경 전·후 및 실제 검증 결과를 PR 본문에 기록한 뒤 사용자 병합을 기다리도록 작업 규칙을 추가했다.
+- 3단계 변경을 `codex/stage-3-sql-validation` 브랜치의 [PR #1](https://github.com/kiy3035/safe-text2sql-lab/pull/1)로 제출했다. 현재 사용자 검토와 병합을 기다린다.
 
 ## 2. 실제 실행한 테스트와 결과
 
@@ -106,7 +107,9 @@
 - Docker Engine: 24.0.7
 - Docker Compose: v2.23.3-desktop.2
 - PostgreSQL: 16.9 Alpine image
-- 기준 commit SHA: `e38b8b1` (3단계 변경은 아직 커밋하지 않음)
+- PR base commit SHA: `e38b8b1`
+- 3단계 테스트 기준 commit SHA: `d9e0fb3`
+- 3단계 PR: [#1 SQL AST 검증 게이트 추가](https://github.com/kiy3035/safe-text2sql-lab/pull/1) — 검토 대기
 - Ollama: 사용자 요청에 따라 설치·실행·버전 확인하지 않음
 - 로컬 LLM 모델: `PENDING`
 
@@ -152,7 +155,7 @@
 
 ## 6. 다음 대화에서 바로 시작할 작업
 
-3단계 PR을 사용자가 확인·병합하고 `계속 진행해`라고 요청한 경우에만 4단계를 시작한다.
+3단계 [PR #1](https://github.com/kiy3035/safe-text2sql-lab/pull/1)을 사용자가 확인·병합하고 `계속 진행해`라고 요청한 경우에만 4단계를 시작한다.
 
 1. `AGENTS.md`, `PROJECT_SPEC.md`, 이 파일을 다시 끝까지 읽는다.
 2. `ValidatedSelect`만 입력으로 받는 EntityManager Native Query 실행기를 구현한다.
