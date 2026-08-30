@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: safe-text2sql-lab
+  datasource:
+    url: ${APP_DB_URL:jdbc:postgresql://localhost:${DB_PORT:5432}/${DB_NAME:text2sql}?currentSchema=analytics}
+    username: text2sql_ro
+    password: ${APP_DB_PASSWORD}
+    hikari:
+      read-only: true
+      maximum-pool-size: 5
+      connection-timeout: 5000
+  flyway:
+    enabled: true
+    url: ${MIGRATION_DB_URL:jdbc:postgresql://localhost:${DB_PORT:5432}/${DB_NAME:text2sql}?currentSchema=analytics}
+    user: text2sql_migration
+    password: ${DB_MIGRATION_PASSWORD}
+    default-schema: analytics
+    schemas: analytics
+    create-schemas: true
+    locations: ${DB_FLYWAY_LOCATIONS:classpath:db/migration}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+
+text2sql:
+  llm:
+    provider: ${SQL_GENERATOR_PROVIDER:disabled}
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      model: ${OLLAMA_MODEL:}
+      temperature: ${LLM_TEMPERATURE:0}
+      connect-timeout: ${OLLAMA_CONNECT_TIMEOUT:2s}
+      read-timeout: ${OLLAMA_READ_TIMEOUT:30s}
