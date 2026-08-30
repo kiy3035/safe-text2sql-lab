@@ -35,6 +35,13 @@ management:
       show-details: never
 
 text2sql:
+  execution:
+    max-rows: ${QUERY_MAX_ROWS:200}
+    statement-timeout: ${QUERY_STATEMENT_TIMEOUT:2s}
+  workflow:
+    max-attempts: ${LLM_MAX_ATTEMPTS:3}
+    initial-backoff: ${LLM_INITIAL_BACKOFF:200ms}
+    max-question-length: ${QUERY_MAX_QUESTION_LENGTH:1000}
   llm:
     provider: ${SQL_GENERATOR_PROVIDER:disabled}
     ollama:
