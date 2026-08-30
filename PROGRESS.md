@@ -28,10 +28,22 @@
 - 기본 LLM provider를 `disabled`로 두고, `SQL_GENERATOR_PROVIDER=ollama`일 때만 Ollama bean이 생성되도록 구성했다.
 - `src/testFixtures`에 고정 응답 `FakeSqlGenerator`와 순차 성공/실패 `ScriptedSqlGenerator`를 구현했다.
 - WireMock 3.13.1로 실제 Ollama 없이 HTTP 요청과 오류 동작을 검증했다.
+- 3단계 SQL 검증을 위해 JSqlParser 5.3을 고정 의존성으로 추가했다.
+- `SqlValidator` 검증 경계와 외부에서 임의 생성할 수 없는 `ValidatedSelect`를 구현했다.
+- `AstSqlValidator`가 단일 SELECT AST 전체를 재귀적으로 검사하도록 구현했다.
+  - DDL/DML/DCL, 다중 문장, CTE, 집합 연산, 잠금 구문, SELECT INTO 거부
+  - `analytics` 스키마, 합성 테이블 6개, 공개 컬럼, 함수 11개의 명시적 Allowlist
+  - SELECT, JOIN, WHERE, GROUP BY, HAVING, ORDER BY, 함수 인자, 서브쿼리의 컬럼 참조 검사
+  - scope별 테이블/별칭/파생 테이블 해석과 상관 서브쿼리의 부모 scope 해석
+  - 모호한 컬럼, alias column list, wildcard, DISTINCT ON과 미지원 확장 구문 fail-closed 처리
+  - SQL 10,000자, JOIN 4개, 서브쿼리 깊이 3, 명시적 LIMIT/FETCH 200행 상한
+- 합성 이름만 사용한 악의적 SQL fixture를 정확히 20건으로 고정하고, 모두 거절되며 테스트용 Native Query 실행 경계가 0회 호출되는지 검증했다.
+- Java 소스의 역할과 보안 판단을 따라갈 수 있도록 상세한 한글 Javadoc과 주석을 추가하고 이 규칙을 `AGENTS.md`에 기록했다.
+- 이후 주요 단계는 독립 브랜치와 PR로 제출하고, 변경 전·후 및 실제 검증 결과를 PR 본문에 기록한 뒤 사용자 병합을 기다리도록 작업 규칙을 추가했다.
 
 ## 2. 실제 실행한 테스트와 결과
 
-### 전체 자동 테스트
+### 2단계 완료 시점 전체 자동 테스트
 
 - 명령: `$env:DOCKER_HOST = 'npipe:////./pipe/docker_engine'; .\gradlew.bat --no-daemon test --rerun-tasks`
 - 결과: `BUILD SUCCESSFUL`, 테스트 20개 통과, 실패 0, 오류 0, 건너뜀 0.
@@ -63,6 +75,20 @@
   - 고정 응답 및 호출 기록
   - 순차 성공/실패 및 남은 step 검증
 
+### 3단계 SQL 검증 자동 테스트
+
+- `AstSqlValidatorTest`: 36개 통과, 실패 0.
+- 허용 확인: 단순 조회, JOIN, 집계, GROUP BY/HAVING, ORDER BY 프로젝션 별칭, 인용 식별자, 상관/파생 서브쿼리, LIMIT/FETCH.
+- 거절 확인: 비조회 statement, 다중 문장, CTE, 집합 연산, 잠금, SELECT INTO, 금지 schema/table/column/function, 모든 주요 AST 위치의 금지 컬럼, 모호한 컬럼, alias column list, wildcard, 과도한 LIMIT/JOIN/서브쿼리.
+- `MaliciousSqlFixtureTest`: 고정 fixture 정확히 20건을 모두 차단했고, 각 차단 직후 테스트용 Native Query 실행 경계 호출 횟수 0을 확인했다.
+- fixture에는 DROP/ALTER/CREATE/TRUNCATE, INSERT/UPDATE/DELETE, GRANT/REVOKE, CALL/COPY, stacked statement, UNION/INTERSECT, 시스템 catalog, 금지 테이블/컬럼/함수, data-modifying CTE가 포함된다.
+
+### 3단계 완료 후 전체 자동 테스트
+
+- 명령: `$env:DOCKER_HOST = 'npipe:////./pipe/docker_engine'; .\gradlew.bat --no-daemon test --rerun-tasks`
+- 결과: `BUILD SUCCESSFUL`, 테스트 57개 통과, 실패 0, 오류 0, 건너뜀 0.
+- 세부 결과: 기존 PostgreSQL 통합 테스트 4개, 기존 LLM 테스트 16개, AST 검증 테스트 36개, 악의적 fixture 실행 경계 테스트 1개 모두 통과.
+
 ### 실제 Compose DB 및 애플리케이션 실행
 
 - 고유한 일회용 Compose 프로젝트로 PostgreSQL을 띄우고 boot jar를 실행했다.
@@ -80,7 +106,7 @@
 - Docker Engine: 24.0.7
 - Docker Compose: v2.23.3-desktop.2
 - PostgreSQL: 16.9 Alpine image
-- 기준 commit SHA: `0f263ec` (이번 단계 변경은 아직 커밋하지 않음)
+- 기준 commit SHA: `e38b8b1` (3단계 변경은 아직 커밋하지 않음)
 - Ollama: 사용자 요청에 따라 설치·실행·버전 확인하지 않음
 - 로컬 LLM 모델: `PENDING`
 
@@ -95,11 +121,17 @@
 - Ollama가 설치되지 않은 기본 환경에서도 LLM provider가 비활성화되어 애플리케이션과 테스트가 동작한다.
 - Ollama adapter가 설정된 model과 prompt로 non-streaming 요청을 만들고 오류 유형을 안정적으로 구분한다.
 - Fake/Scripted generator로 실제 모델 없이 후속 검증·재시도 로직을 테스트할 수 있다.
+- 원시 SQL은 JSqlParser AST 검증을 통과한 경우에만 `ValidatedSelect`로 변환된다.
+- 검증기가 허용된 schema/table/column/function을 모든 주요 SELECT AST 위치에서 검사한다.
+- 테이블 별칭, 파생 테이블, 상관 서브쿼리를 scope별로 해석하고 모호하거나 해석 불가능한 참조를 거절한다.
+- 악의적 SQL 고정 fixture 20건이 테스트용 실행 경계에 도달하지 않는다.
 
 ## 4. 미완료 작업
 
-- 3단계 SQL AST 검증 gate, allowlist, alias/서브쿼리 해석, 악의적 SQL 20종 fixture는 시작하지 않았다.
-- Native Query 실행, 재시도/API, 정확도·인덱스 실험, 보고서·블로그는 각 후속 단계 범위로 남아 있다.
+- 4단계 EntityManager 기반 Native Query 실행기는 아직 구현하지 않았다. 현재 executor 0회 검증은 3단계 테스트용 기록 경계에서 수행한다.
+- 결과 행 수의 실행 시점 강제와 PostgreSQL statement timeout은 4단계 범위로 남아 있다.
+- 최대 3회 LLM 호출, 검증 실패 재생성, 주입 가능한 backoff, API는 4단계 범위로 남아 있다.
+- 정확도·인덱스 실험, 결과 보고서·블로그는 각 후속 단계 범위로 남아 있다.
 - benchmark seed 파일은 만들었지만 5단계 전에는 적재·측정하지 않는다.
 - Ollama와 로컬 모델은 설치하거나 실행하지 않았다.
 
@@ -113,17 +145,21 @@
 - WireMock 의존성은 제한된 sandbox 네트워크에서 처음 내려받지 못했다. 승인 후 Maven Central에서 테스트 의존성만 받아 해결했다.
 - 최초 timeout 테스트에서 Spring `RestClient`가 read timeout을 응답 디코딩 예외로 감쌌다. cause chain의 `SocketTimeoutException`/`HttpTimeoutException`을 전송 오류로 분류하도록 수정했다.
 - 2단계 전체 테스트의 첫 실행에서 Docker Desktop 엔진이 꺼져 있어 LLM 테스트 16개는 통과하고 PostgreSQL 테스트 4개가 실패했다. 설치된 Docker Desktop을 시작한 뒤 전체 20개를 캐시 없이 재실행해 모두 통과했다.
+- 3단계 검증기 첫 테스트에서 JSqlParser 5.3의 `Table.getDBLinkName()`이 일반 테이블에도 테이블명을 반환해 모든 테이블이 미지원 구문으로 오인됐다. catalog/database와 `nameParts`를 명시적으로 검사하도록 바꿔 해결했다.
+- JSqlParser가 `COUNT(*)`의 `*`를 함수 파라미터의 `AllColumns`로 표현해 일반 wildcard와 함께 거절됐다. 함수가 정확히 `count`이고 인자가 단일 `AllColumns`인 경우만 별도로 허용했다.
+- 3단계 전체 테스트 첫 실행은 Docker Desktop 엔진이 꺼져 있어 PostgreSQL 통합 테스트 4개만 실패했다. 설치된 Docker Desktop을 시작한 뒤 전체 57개를 캐시 없이 재실행해 모두 통과했다.
+- JSqlParser 5.3의 deprecated LIMIT/FETCH 접근자 경고를 확인했다. 현재 expression API로 교체하고 `-Xlint:deprecation`을 활성화한 뒤 경고 없이 컴파일되는 것을 확인했다.
 
 ## 6. 다음 대화에서 바로 시작할 작업
 
-사용자가 `계속 진행해`라고 요청한 경우에만 3단계를 시작한다.
+3단계 PR을 사용자가 확인·병합하고 `계속 진행해`라고 요청한 경우에만 4단계를 시작한다.
 
 1. `AGENTS.md`, `PROJECT_SPEC.md`, 이 파일을 다시 끝까지 읽는다.
-2. JSqlParser 등 SQL AST parser를 선정하고 의존성 추가 이유를 기록한다.
-3. 단일 SELECT와 금지 statement/구문을 fail-closed로 검증한다.
-4. schema/table/column/function allowlist와 scope별 alias/서브쿼리 해석을 구현한다.
-5. 정확히 20개의 악의적 SQL fixture와 허용 SQL 테스트를 작성한다.
-6. 모든 차단 fixture에서 Native Query executor 호출 0회를 검증할 수 있는 경계를 준비한다.
+2. `ValidatedSelect`만 입력으로 받는 EntityManager Native Query 실행기를 구현한다.
+3. 실행 결과 최대 200행과 PostgreSQL statement timeout을 강제한다.
+4. 최초 호출 포함 최대 3회 LLM 호출과 200ms/400ms backoff를 주입 가능한 정책으로 구현한다.
+5. 5xx와 검증 실패만 재시도하고 4xx, DB 권한 오류, timeout, 취소는 즉시 종료한다.
+6. Scripted/Fake LLM과 Testcontainers로 API, 재시도, 실행 미호출 조건을 검증한다.
 
 ## 7. 실행 및 재현 명령어
 
@@ -152,6 +188,12 @@ $env:DOCKER_HOST = 'npipe:////./pipe/docker_engine'
 docker compose down
 ```
 
+Ollama와 Docker DB 없이 3단계 검증 테스트만 실행:
+
+```powershell
+.\gradlew.bat test --tests 'dev.safetext2sql.sql.validation.*' --rerun-tasks
+```
+
 Ollama adapter 설정은 Ollama와 모델이 이미 준비된 이후에만 다음처럼 주입한다. 2단계에서는 실제 Ollama를 실행하지 않았다.
 
 ```powershell
@@ -174,6 +216,8 @@ $env:OLLAMA_READ_TIMEOUT = '30s'
 - Ollama: `src/main/java/dev/safetext2sql/llm/ollama/*`, `src/main/java/dev/safetext2sql/llm/config/*`
 - 프롬프트: `src/main/java/dev/safetext2sql/llm/prompt/SqlPromptTemplate.java`
 - LLM 테스트 대역: `src/testFixtures/java/dev/safetext2sql/llm/support/*`
+- SQL 검증: `src/main/java/dev/safetext2sql/sql/validation/*`
+- 보안 fixture와 테스트: `src/test/resources/security/malicious-sql.json`, `src/test/java/dev/safetext2sql/sql/validation/*Test.java`
 - Flyway: `src/main/resources/db/migration/V1__create_analytics_schema.sql`, `V2__load_smoke_seed.sql`, `V3__grant_readonly_privileges.sql`
 - 선택형 seed: `src/main/resources/db/benchmark/R__load_benchmark_seed.sql`
 - 테스트: `src/test/java/dev/safetext2sql/DatabaseIntegrationTest.java`, `src/test/java/dev/safetext2sql/llm/**/*Test.java`

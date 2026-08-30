@@ -18,3 +18,14 @@
 - 재생성 feedback은 자유 형식 문장이 아니라 대문자 stable code만 허용한다. 질문과 feedback을 프롬프트에서 명확히 분리하지만 이를 보안 경계로 간주하지 않는다.
 - `FakeSqlGenerator`와 순차 성공/실패를 표현하는 `ScriptedSqlGenerator`는 `src/testFixtures`에 둔다. 제품 runtime bean으로 등록하지 않으면서 후속 단계 테스트에서 재사용하기 위해서다.
 - 실제 Ollama 대신 WireMock 3.13.1로 요청 JSON, 정상 응답, 4xx/5xx, timeout, malformed/incomplete 응답을 검증한다.
+
+## 3단계
+
+- SQL 파서는 JSqlParser 5.3으로 고정한다. SQL 문자열이나 정규식으로 최종 허용 여부를 판단하지 않고 SELECT AST 전체를 재귀 순회하기 위해서다.
+- 실행 계층은 원시 SQL이 아니라 package-private 생성자를 가진 `ValidatedSelect`만 받도록 경계를 만든다. 검증기 패키지 밖에서 검증 완료 값을 임의로 만들 수 없게 해 검증 우회 경로를 줄인다.
+- 허용 정책은 `analytics` 스키마의 합성 테이블 6개, 공개 컬럼, 집계·문자열 함수 11개만 명시한다. 목록에 없거나 해석할 수 없는 식별자는 DB에 질의해 추측하지 않고 거절한다.
+- 각 SELECT마다 별도 scope를 만들고 FROM 관계와 별칭을 등록한다. 한정 컬럼은 현재 scope에서 먼저 찾고, 상관 서브쿼리만 부모 scope를 탐색하며, 한정하지 않은 컬럼이 둘 이상의 관계에 존재하면 모호한 참조로 거절한다.
+- `SELECT *`, CTE, 집합 연산, 잠금, SELECT INTO, 별칭 컬럼 목록, DISTINCT ON과 파서가 지원하더라도 정책에서 검증하지 않는 확장 구문은 fail-closed로 거절한다.
+- 명시적인 LIMIT/FETCH는 200행, JOIN은 4개, 서브쿼리는 3단계, 입력 SQL은 10,000자로 제한한다. 실제 결과 행 제한과 statement timeout은 4단계 실행기에서도 별도로 강제한다.
+- 악의적 SQL은 합성 이름만 사용한 JSON fixture 정확히 20건으로 고정한다. 각 fixture가 안정적인 거절 코드로 실패하고 테스트용 Native Query 실행 경계 호출 횟수가 0인지 함께 검증한다.
+- 새 코드의 신뢰 경계와 보안 판단은 사용자가 소스를 따라갈 수 있도록 상세한 한글 Javadoc과 의도 중심 주석으로 기록한다.

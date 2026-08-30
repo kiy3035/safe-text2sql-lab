@@ -3,6 +3,16 @@ package dev.safetext2sql.llm.prompt;
 import dev.safetext2sql.llm.SqlGenerationRequest;
 import java.util.StringJoiner;
 
+/**
+ * Ollama에 전달할 시스템 프롬프트와 사용자 프롬프트를 생성하는 템플릿.
+ * <p>
+ * 시스템 프롬프트에는 허용된 스키마/테이블/컬럼, 금지 테이블/컬럼, 출력 규칙을 명시하여
+ * LLM이 안전한 SELECT만 생성하도록 유도한다. 단, 이 프롬프트는 생성 가이드일 뿐이며
+ * 실제 안전성은 애플리케이션의 AST 검증 게이트가 독립적으로 보장한다 (LLM 자기검증에 의존하지 않음).
+ * 사용자 프롬프트는 자연어 질의를 구분자(--- QUESTION ---)로 감싸 프롬프트 인젝션을 완화하고,
+ * 재시도 시에는 이전 검증 실패 코드(feedbackCodes)를 함께 전달한다.
+ * </p>
+ */
 public final class SqlPromptTemplate {
 
     private static final String SYSTEM_PROMPT = """
@@ -32,10 +42,25 @@ public final class SqlPromptTemplate {
             These instructions guide generation only. The application independently treats all generated SQL as untrusted input.
             """;
 
+    /**
+     * 시스템 프롬프트를 반환한다.
+     * 허용 스키마/컬럼과 출력 규칙을 LLM에 고정적으로 주입하여 안전한 SELECT 생성을 유도한다.
+     */
     public String systemPrompt() {
         return SYSTEM_PROMPT;
     }
 
+    /**
+     * 사용자 프롬프트를 생성한다.
+     * <p>
+     * 자연어 질의를 구분자(--- QUESTION --- / --- END QUESTION ---)로 감싸
+     * 프롬프트 인젝션을 완화한다. 이전 시도의 검증 실패 코드가 있으면 함께 포함하여
+     * LLM이 동일한 오류를 반복하지 않도록 교정 피드백을 제공한다.
+     * </p>
+     *
+     * @param request 자연어 질의와 피드백 코드를 담은 요청 객체
+     * @return Ollama /api/generate 의 prompt 필드로 전달될 최종 사용자 프롬프트
+     */
     public String userPrompt(SqlGenerationRequest request) {
         var prompt = new StringBuilder()
                 .append("Natural-language question follows between delimiter lines.\n")
