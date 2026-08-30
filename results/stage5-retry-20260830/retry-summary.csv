@@ -1,0 +1,4 @@
+scenario,repetitions,elapsedMedianMs,elapsedMinMs,elapsedMaxMs,elapsedP95Ms,firstRequestGapMedianMs,secondRequestGapMedianMs
+SERVER_SERVER_SUCCESS,10,680.0,670.0,1497.0,1497.0,229.0,426.0
+SERVER_SERVER_SERVER,10,672.0,666.0,680.0,680.0,229.0,427.0
+CLIENT_ERROR,10,12.0,11.0,25.0,25.0,null,null
