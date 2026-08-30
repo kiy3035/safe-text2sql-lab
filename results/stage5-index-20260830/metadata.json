@@ -1,0 +1,22 @@
+{
+  "runId" : "stage5-index-20260830",
+  "capturedAt" : "2026-08-30T13:54:18.897244600Z",
+  "commitSha" : "5c94665238b49b41a214ac8247c0aa59929f74b6",
+  "os" : "Windows 11 10.0 (amd64)",
+  "cpu" : "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+  "ramBytes" : 8379490304,
+  "javaVersion" : "21.0.8",
+  "postgresqlVersion" : "16.9",
+  "ollamaVersion" : "NOT_INSTALLED",
+  "modelName" : "NOT_APPLICABLE",
+  "temperature" : null,
+  "promptSha256" : null,
+  "dataCounts" : {
+    "categories" : 5,
+    "orders" : 50100,
+    "payments" : 50100,
+    "products" : 20,
+    "order_items" : 50100,
+    "customers" : 50
+  }
+}

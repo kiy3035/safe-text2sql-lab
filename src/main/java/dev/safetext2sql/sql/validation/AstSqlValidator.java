@@ -125,7 +125,26 @@ public final class AstSqlValidator implements SqlValidator {
         Select select = (Select) statement;
 
         List<String> projections = validateSelect(select, null, 0, true);
-        return new ValidatedSelect(sql, projections);
+        return new ValidatedSelect(sql, projections, hasTopLevelRowLimit(select));
+    }
+
+    /**
+     * 응답 행 수를 직접 제한하는 최상위 LIMIT/FETCH만 찾는다.
+     *
+     * <p>FROM/WHERE의 서브쿼리 제한은 바깥 SELECT의 행 수를 제한하지 않으므로 여기서
+     * 표식으로 사용하지 않는다. 최상위 괄호는 의미를 바꾸지 않으므로 안쪽 SELECT까지
+     * 내려간다. LIMIT/FETCH 값 자체의 범위는 이미 {@link #validateCommonSelectClauses(Select)}가
+     * 고정 정수 0~200으로 검증한다.</p>
+     */
+    private boolean hasTopLevelRowLimit(Select select) {
+        if (select.getLimit() != null || select.getFetch() != null) {
+            return true;
+        }
+        if (select instanceof ParenthesedSelect parenthesedSelect
+                && parenthesedSelect.getSelect() != null) {
+            return hasTopLevelRowLimit(parenthesedSelect.getSelect());
+        }
+        return false;
     }
 
     /**

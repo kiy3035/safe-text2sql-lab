@@ -1,0 +1,271 @@
+[ {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 1,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 1497,
+  "firstRequestGapMs" : 487,
+  "secondRequestGapMs" : 437
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 1,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 678,
+  "firstRequestGapMs" : 225,
+  "secondRequestGapMs" : 434
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 1,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 19,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 2,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 673,
+  "firstRequestGapMs" : 226,
+  "secondRequestGapMs" : 422
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 2,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 666,
+  "firstRequestGapMs" : 225,
+  "secondRequestGapMs" : 420
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 2,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 13,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 3,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 674,
+  "firstRequestGapMs" : 231,
+  "secondRequestGapMs" : 425
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 3,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 670,
+  "firstRequestGapMs" : 229,
+  "secondRequestGapMs" : 424
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 3,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 11,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 4,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 676,
+  "firstRequestGapMs" : 231,
+  "secondRequestGapMs" : 426
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 4,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 671,
+  "firstRequestGapMs" : 224,
+  "secondRequestGapMs" : 429
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 4,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 12,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 5,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 677,
+  "firstRequestGapMs" : 230,
+  "secondRequestGapMs" : 426
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 5,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 671,
+  "firstRequestGapMs" : 229,
+  "secondRequestGapMs" : 426
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 5,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 12,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 6,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 686,
+  "firstRequestGapMs" : 229,
+  "secondRequestGapMs" : 426
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 6,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 673,
+  "firstRequestGapMs" : 227,
+  "secondRequestGapMs" : 426
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 6,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 12,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 7,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 685,
+  "firstRequestGapMs" : 227,
+  "secondRequestGapMs" : 429
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 7,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 680,
+  "firstRequestGapMs" : 230,
+  "secondRequestGapMs" : 430
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 7,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 23,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 8,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 670,
+  "firstRequestGapMs" : 226,
+  "secondRequestGapMs" : 426
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 8,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 668,
+  "firstRequestGapMs" : 229,
+  "secondRequestGapMs" : 431
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 8,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 25,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 9,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 683,
+  "firstRequestGapMs" : 228,
+  "secondRequestGapMs" : 429
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 9,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 676,
+  "firstRequestGapMs" : 230,
+  "secondRequestGapMs" : 428
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 9,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 11,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+}, {
+  "scenario" : "SERVER_SERVER_SUCCESS",
+  "repetition" : 10,
+  "httpCallCount" : 3,
+  "outcome" : "SUCCESS",
+  "attemptCount" : 3,
+  "elapsedMs" : 690,
+  "firstRequestGapMs" : 229,
+  "secondRequestGapMs" : 427
+}, {
+  "scenario" : "SERVER_SERVER_SERVER",
+  "repetition" : 10,
+  "httpCallCount" : 3,
+  "outcome" : "LLM_UNAVAILABLE",
+  "attemptCount" : 3,
+  "elapsedMs" : 674,
+  "firstRequestGapMs" : 229,
+  "secondRequestGapMs" : 424
+}, {
+  "scenario" : "CLIENT_ERROR",
+  "repetition" : 10,
+  "httpCallCount" : 1,
+  "outcome" : "LLM_REQUEST_REJECTED",
+  "attemptCount" : 1,
+  "elapsedMs" : 11,
+  "firstRequestGapMs" : null,
+  "secondRequestGapMs" : null
+} ]

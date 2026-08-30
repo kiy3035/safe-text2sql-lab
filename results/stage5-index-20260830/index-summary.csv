@@ -1,0 +1,7 @@
+caseId,condition,repetitions,scanType,plannerEstimatedRowsMedian,actualRowsMedian,resultRowsMedian,rowsRemovedByFilterMedian,sharedHitBlocksMedian,sharedReadBlocksMedian,planningTimeMedianMs,executionTimeMedianMs,executionTimeMinMs,executionTimeMaxMs,executionTimeP95Ms
+IDX-001,BEFORE,10,Seq Scan,1101.0,1116.0,1.0,48984.0,432.0,0.0,0.0675,3.5685000000000002,2.692,4.407,4.407
+IDX-001,AFTER,10,Bitmap Heap Scan,1118.0,1116.0,1.0,0.0,48.0,0.0,0.07150000000000001,0.34450000000000003,0.292,0.508,0.508
+IDX-002,BEFORE,10,Seq Scan,6550.0,6588.0,100.0,43512.0,432.0,0.0,0.063,4.138,3.926,5.084,5.084
+IDX-002,AFTER,10,Index Scan,6559.0,100.0,100.0,0.0,8.0,0.0,0.093,0.0945,0.083,0.16,0.16
+IDX-003,BEFORE,10,Seq Scan,6579.0,6552.0,1.0,43548.0,432.0,0.0,0.056,5.0655,4.039,6.056,6.056
+IDX-003,AFTER,10,Bitmap Heap Scan,6572.0,6552.0,1.0,0.0,262.0,0.0,0.076,1.7835,1.67,3.433,3.433

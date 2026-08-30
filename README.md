@@ -1,6 +1,6 @@
 # Safe Text2SQL Lab
 
-합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. 현재는 4단계까지 구현되어 Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate, 제한된 Native Query 실행과 재시도 API를 제공한다.
+합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. 현재는 5단계까지 구현되어 Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate, 제한된 Native Query 실행과 재시도 API, 자연어·인덱스·재시도 측정 runner를 제공한다.
 
 ## 요구 사항
 
@@ -96,13 +96,58 @@ LLM이 생성한 문자열은 JSqlParser 5.3으로 파싱한 뒤 명시적인 �
 
 ## 선택형 benchmark seed
 
-기본 실행은 주문 100개의 smoke seed를 사용한다. 향후 인덱스 실험용 50,000개 주문을 추가하려면 새 로컬 DB에서 다음 값을 함께 설정한다.
+기본 실행은 주문 100개의 smoke seed를 사용한다. 인덱스 실험용 50,000개 주문을 추가하려면 새 로컬 DB에서 다음 값을 함께 설정한다. smoke seed를 포함해 `orders`, `order_items`, `payments`가 각각 50,100행이 된다.
 
 ```powershell
 $env:DB_FLYWAY_LOCATIONS = 'classpath:db/migration,classpath:db/benchmark'
 ```
 
-benchmark DDL과 측정은 5단계 범위이며 아직 실행하지 않는다.
+benchmark seed는 반복 가능한 Flyway migration이며, 일반 애플리케이션 DB와 분리한 일회성 로컬 실험 DB에서만 사용한다.
+
+## 5단계 측정 실험
+
+질문과 Golden SQL은 각각 [nl-questions.jsonl](experiments/nl-questions.jsonl),
+[golden-sql.jsonl](experiments/golden-sql.jsonl)에 정확히 50건으로 고정되어 있다. 생성 SQL 문자열을
+Golden 문자열과 비교하지 않고 같은 seed DB의 결과 집합을 `SCALAR`, `ORDERED`, `UNORDERED`
+정책에 따라 비교한다.
+
+Ollama 없이 Golden 50건의 검증·실행과 PENDING 결과만 생성하려면 DB 환경 변수를 설정하고 다음을 실행한다.
+
+```powershell
+$env:SQL_GENERATOR_PROVIDER = 'disabled'
+$env:OLLAMA_VERSION = 'NOT_INSTALLED'
+$env:EXPERIMENT_RUN_ID = 'my-nl-pending-run'
+docker compose up -d --wait postgres
+.\gradlew.bat nlExperiment
+docker compose down
+```
+
+인덱스 전후 실험은 50,100행 benchmark seed를 사용하는 별도 DB에서 실행한다. 고정 조회 3개를
+전후 각 1회 예열·10회 측정하고 원본 실행계획 60개와 요약 CSV를 만든다.
+
+```powershell
+$env:DB_FLYWAY_LOCATIONS = 'classpath:db/migration,classpath:db/benchmark'
+$env:EXPERIMENT_RUN_ID = 'my-index-run'
+docker compose up -d --wait postgres
+.\gradlew.bat indexExperiment
+docker compose down
+```
+
+WireMock 재시도 측정은 Docker와 Ollama 없이 실행할 수 있다.
+
+```powershell
+$env:EXPERIMENT_RUN_ID = 'my-retry-run'
+.\gradlew.bat retryExperiment
+```
+
+검증된 5단계 결과는 다음 디렉터리에 보존했다.
+
+- `results/stage5-nl-pending-20260830`: Golden 50건 실행 성공, 실제 LLM 정확도는 `PENDING`
+- `results/stage5-index-20260830`: 10회 반복 요약과 `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` 원본 60개
+- `results/stage5-retry-20260830`: 세 HTTP 시나리오 각 10회, 총 30회 원본과 요약
+
+세 결과의 metadata는 측정 코드 SHA `5c94665238b49b41a214ac8247c0aa59929f74b6`와
+OS·CPU·RAM·Java·PostgreSQL·Ollama/model 정보를 기록한다. 비밀번호와 JDBC/Ollama URL은 기록하지 않는다.
 
 ## 로컬 Ollama 연동 설정
 
@@ -131,8 +176,9 @@ WireMock 기반 adapter 테스트와 Scripted/Fake 테스트 대역도 전체 �
 - Native Query 실행기는 문자열이 아니라 `ValidatedSelect`만 입력으로 받으며
   `EntityManager.createNativeQuery(...)`에 검증된 SQL을 그대로 전달한다.
 - datasource의 `text2sql_ro` 최소 권한에 더해 `@Transactional(readOnly = true)`를 적용한다.
-- 기본 반환 상한은 200행이다. 실행기는 201행까지만 가져와 상한 초과 여부를 확인하고 응답의
-  `truncated`에 기록한다.
+- 기본 반환 상한은 200행이다. 명시적 LIMIT/FETCH가 없는 조회는 201행까지만 가져와 상한 초과를
+  확인한다. 최상위 LIMIT/FETCH는 AST가 최대 200행으로 먼저 제한하며, 실행 설정이 더 작으면
+  API 응답을 다시 해당 상한으로 자르고 `truncated`에 기록한다.
 - PostgreSQL `statement_timeout`은 기본 2초이며 현재 트랜잭션에만 적용한다.
 - LLM 호출은 최초 호출을 포함해 최대 3회다. 두 번째·세 번째 호출 직전에 기본 200ms·400ms
   지수 백오프를 적용한다.

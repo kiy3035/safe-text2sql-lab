@@ -15,6 +15,6 @@ public final class ValidatedSelectTestFactory {
 
     /** 테스트할 SQL과 예상 결과 컬럼 하나를 검증 완료 값으로 감싼다. */
     public static ValidatedSelect create(String sql, String projectedColumn) {
-        return new ValidatedSelect(sql, List.of(projectedColumn));
+        return new ValidatedSelect(sql, List.of(projectedColumn), false);
     }
 }

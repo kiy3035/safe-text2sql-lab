@@ -1,0 +1,15 @@
+{
+  "status" : "PENDING",
+  "pendingReason" : "OLLAMA_NOT_CONFIGURED",
+  "totalQuestions" : 50,
+  "correctCount" : null,
+  "accuracy" : null,
+  "generationSuccessCount" : null,
+  "generationSuccessRate" : null,
+  "firstAttemptValidationPassCount" : null,
+  "firstAttemptValidationPassRate" : null,
+  "averageAttemptCount" : null,
+  "medianAttemptCount" : null,
+  "byDifficulty" : { },
+  "failureCounts" : { }
+}

@@ -65,10 +65,18 @@ public class NativeQueryExecutor implements SqlQueryExecutor {
             int fetchLimit = Math.addExact(properties.maxRows(), 1);
             Query query = entityManager.createNativeQuery(validatedSelect.sql());
             query.setHint(JPA_QUERY_TIMEOUT_HINT, Math.toIntExact(properties.statementTimeout().toMillis()));
-            query.setMaxResults(fetchLimit);
+            if (!validatedSelect.hasExplicitRowLimit()) {
+                query.setMaxResults(fetchLimit);
+            }
 
             @SuppressWarnings("unchecked")
             List<Object> rawRows = query.getResultList();
+            /*
+             * 최상위 LIMIT/FETCH는 AST 정책이 최대 200행으로 먼저 제한한다. Hibernate가
+             * 기존 LIMIT 뒤에 FETCH를 중복 생성하는 문제를 피하려고 setMaxResults를 생략해도
+             * DB에서 무제한 결과를 가져오지 않는다. 실행 설정이 200보다 작다면 아래에서
+             * 동일하게 maxRows까지만 반환하고 truncated=true를 기록한다.
+             */
             boolean truncated = rawRows.size() > properties.maxRows();
             int returnedRowCount = Math.min(rawRows.size(), properties.maxRows());
             List<List<Object>> rows = new ArrayList<>(returnedRowCount);

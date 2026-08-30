@@ -34,8 +34,10 @@
 
 - 실행 경계는 `SqlQueryExecutor.execute(ValidatedSelect)`로 고정한다. 검증기 패키지 밖에서는
   `ValidatedSelect`를 만들 수 없으므로 LLM 원문 문자열을 Native Query로 직접 보내는 공개 경로가 없다.
-- 행 제한을 위해 SQL 뒤에 `LIMIT` 문자열을 붙이지 않는다. JPA `setMaxResults(maxRows + 1)`로
-  최대 한 행만 더 가져와 `truncated`를 판별하고, API에는 상한 이내 행만 반환한다.
+- 행 제한을 위해 SQL 뒤에 `LIMIT` 문자열을 붙이지 않는다. 명시적 제한이 없는 조회는 JPA
+  `setMaxResults(maxRows + 1)`로 한 행만 더 가져와 `truncated`를 판별한다. 최상위 LIMIT/FETCH가
+  있으면 AST에서 최대 200행임을 확인한 표식을 사용해 Hibernate의 중복 FETCH 생성을 피하고,
+  실행 설정이 더 작은 경우 메모리에서 응답 상한을 적용한다.
 - PostgreSQL `statement_timeout`은 바인드 값과 `set_config(..., true)`를 사용해 현재 트랜잭션에만
   적용한다. JPA timeout hint도 함께 사용하되 보안·자원 경계의 기준은 DB timeout이다.
 - `@Transactional(readOnly = true)`는 보조 힌트로만 사용한다. 실제 권한 경계는 1단계에서 만든
@@ -46,3 +48,26 @@
   statement timeout·취소, 기타 DB 오류는 같은 요청을 반복하지 않고 즉시 안정적인 오류로 끝낸다.
 - HTTP 응답과 예외에는 질문, SQL, Ollama 본문, PostgreSQL 메시지를 넣지 않는다. 구조화 로그도
   correlation ID, attempt, 결과 코드, backoff, elapsed time만 기록한다.
+
+## 5단계
+
+- 자연어 질문과 Golden SQL을 별도 JSONL 파일 각 50건으로 고정한다. 사람이 읽을 질문 정보와
+  신뢰된 SQL을 분리해 fixture 연결 누락·중복을 테스트로 확인하고, 생성 SQL 문자열 자체는 정답
+  판정에 사용하지 않는다.
+- 결과 비교는 질문별로 `SCALAR`, `ORDERED`, `UNORDERED`를 지정한다. 숫자는 표현 타입 차이로
+  오답 처리되지 않도록 `BigDecimal`로 정규화하고, unordered 결과는 중복 행 개수까지 비교한다.
+- 자연어 실험은 제품 `Text2SqlQueryService`를 그대로 조립한다. 실험 편의를 위해 검증 gate,
+  재시도 예산, read-only 실행기, timeout을 우회하지 않는다. Golden SQL도 같은 AST와 DB 실행
+  경계를 통과시켜 fixture 자체의 오류를 먼저 드러낸다.
+- Ollama provider가 없으면 Golden SQL 50건만 검증·실행하고 결과는 `PENDING`으로 기록한다.
+  Fake/Scripted LLM은 자동 테스트에만 쓰며 실제 모델 정확도 수치로 저장하지 않는다.
+- 인덱스 실험의 SELECT와 DDL은 코드에 고정한다. EXPLAIN SELECT는 `text2sql_ro`, 후보 인덱스
+  생성·삭제와 ANALYZE는 migration 계정으로 실행하며, 실패해도 finally에서 인덱스를 제거한다.
+- 실행계획은 한 번의 우연한 시간으로 결론 내리지 않도록 전후 각 1회 예열·10회 측정한다. 원본
+  JSON 60개를 보존하고 중앙값·최소·최대·p95, planner/actual rows와 buffer 수치를 CSV로 요약한다.
+- 재시도 측정은 실제 Ollama HTTP adapter와 `ThreadSleeper`를 사용하되 서버만 WireMock으로 대체한다.
+  `500→500→200`, `500→500→500`, `400`을 각각 10회 실행해 호출 수와 요청 간격을 원본으로 남긴다.
+- 결과 파일에는 commit SHA, UTC 실행 시각, OS·CPU·RAM·Java·PostgreSQL·Ollama/model/temperature,
+  prompt hash와 데이터 건수를 해당 범위에서 기록한다. 접속 URL과 비밀번호는 결과 schema에 넣지 않는다.
+- `results/`는 기본적으로 로컬 반복 실행 산출물을 무시하지만, 검증 완료한 세 run 디렉터리만
+  PR에서 강제로 추적해 블로그 수치의 원본 근거를 보존한다.

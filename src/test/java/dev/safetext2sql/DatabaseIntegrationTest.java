@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.nio.file.Path;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -161,6 +161,20 @@ class DatabaseIntegrationTest {
         assertThat(result.rows().getFirst()).containsExactly(1L);
         assertThat(result.rows().getLast()).containsExactly(10L);
         assertThat(result.truncated()).isTrue();
+    }
+
+    @Test
+    void nativeQueryExecutorHandlesAnAstValidatedLimitWithoutAppendingAnotherLimit() {
+        var limited = sqlQueryExecutor.execute(sqlValidator.validate(
+                "SELECT order_id FROM orders ORDER BY order_id LIMIT 5"));
+        var limitedAboveRuntimeMaximum = sqlQueryExecutor.execute(sqlValidator.validate(
+                "SELECT order_id FROM orders ORDER BY order_id LIMIT 20"));
+
+        assertThat(limited.rows()).hasSize(5);
+        assertThat(limited.truncated()).isFalse();
+        // 테스트 실행 상한은 10행이다. AST LIMIT이 더 커도 API 응답 상한은 그대로 유지된다.
+        assertThat(limitedAboveRuntimeMaximum.rows()).hasSize(10);
+        assertThat(limitedAboveRuntimeMaximum.truncated()).isTrue();
     }
 
     @Test
