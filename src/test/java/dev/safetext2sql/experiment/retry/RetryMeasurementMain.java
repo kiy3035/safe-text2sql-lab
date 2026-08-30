@@ -1,6 +1,7 @@
 package dev.safetext2sql.experiment.retry;
 
 import java.math.BigDecimal;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import dev.safetext2sql.execution.QueryResult;
 import dev.safetext2sql.experiment.ExperimentRunDirectory;
@@ -67,7 +69,9 @@ public final class RetryMeasurementMain {
             }
 
             List<RetrySummary> summaries = summarize(measurements);
-            ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+            ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
+                    // 다른 실험 metadata와 마찬가지로 Instant를 사람이 읽을 수 있는 ISO-8601로 남긴다.
+                    .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             mapper.writerWithDefaultPrettyPrinter().writeValue(
                     output.directory().resolve("retry-measurements.json").toFile(), measurements);
             mapper.writerWithDefaultPrettyPrinter().writeValue(
@@ -213,6 +217,8 @@ public final class RetryMeasurementMain {
         metadata.put("capturedAt", Instant.now());
         metadata.put("commitSha", gitCommit());
         metadata.put("os", System.getProperty("os.name") + " " + System.getProperty("os.version"));
+        metadata.put("cpu", cpu());
+        metadata.put("ramBytes", ramBytes());
         metadata.put("javaVersion", System.getProperty("java.version"));
         metadata.put("postgresqlVersion", "NOT_APPLICABLE");
         metadata.put("ollamaVersion", "WIREMOCK");
@@ -221,6 +227,22 @@ public final class RetryMeasurementMain {
         metadata.put("repetitionsPerScenario", REPETITIONS);
         metadata.put("backoffMs", List.of(200, 400));
         return metadata;
+    }
+
+    /** Windows가 제공하는 CPU 식별자를 우선 사용하고, 없으면 논리 프로세서 수를 기록한다. */
+    private static String cpu() {
+        String identifier = System.getenv("PROCESSOR_IDENTIFIER");
+        return identifier == null || identifier.isBlank()
+                ? Runtime.getRuntime().availableProcessors() + " logical processors"
+                : identifier;
+    }
+
+    /** Java 21 관리 bean에서 운영체제가 보고한 전체 물리 메모리를 byte 단위로 읽는다. */
+    private static long ramBytes() {
+        var bean = ManagementFactory.getOperatingSystemMXBean();
+        return bean instanceof com.sun.management.OperatingSystemMXBean extended
+                ? extended.getTotalMemorySize()
+                : -1L;
     }
 
     private static String gitCommit() throws Exception {
