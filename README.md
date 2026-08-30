@@ -1,6 +1,6 @@
 # Safe Text2SQL Lab
 
-합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. 현재는 3단계까지 구현되어 Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate를 제공한다. 검증된 SQL의 Native Query 실행과 재시도 API는 아직 구현되지 않았다.
+합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. 현재는 4단계까지 구현되어 Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate, 제한된 Native Query 실행과 재시도 API를 제공한다.
 
 ## 요구 사항
 
@@ -35,6 +35,17 @@ docker compose up -d --wait postgres
 Invoke-RestMethod http://localhost:8080/actuator/health
 ```
 
+자연어 질의 API는 다음 경로를 사용한다. 기본 provider는 `disabled`이므로 Ollama를 연결하지 않은
+상태에서는 내부 정보 없이 `LLM_UNAVAILABLE`을 반환한다.
+
+```powershell
+$body = @{ question = '첫 주문을 알려줘' } | ConvertTo-Json
+Invoke-RestMethod -Method Post `
+  -Uri http://localhost:8080/api/v1/text2sql/query `
+  -ContentType 'application/json' `
+  -Body $body
+```
+
 종료:
 
 ```powershell
@@ -61,10 +72,13 @@ docker compose down --volumes
 $env:DOCKER_HOST = 'npipe:////./pipe/docker_engine'
 ```
 
-Ollama와 Docker DB 없이 SQL 검증 테스트만 실행할 수도 있다.
+Ollama와 Docker DB 없이 SQL 검증·재시도·API 단위 테스트만 실행할 수도 있다.
 
 ```powershell
-.\gradlew.bat test --tests 'dev.safetext2sql.sql.validation.*'
+.\gradlew.bat test `
+  --tests 'dev.safetext2sql.sql.validation.*' `
+  --tests 'dev.safetext2sql.workflow.*' `
+  --tests 'dev.safetext2sql.api.*'
 ```
 
 ## SQL AST 검증 gate
@@ -76,7 +90,7 @@ LLM이 생성한 문자열은 JSqlParser 5.3으로 파싱한 뒤 명시적인 �
 - SELECT, JOIN, WHERE, GROUP BY, HAVING, ORDER BY와 모든 서브쿼리의 참조를 재귀적으로 검사한다.
 - 별칭과 파생 테이블을 SELECT scope별로 해석하며 모호하거나 해석할 수 없는 컬럼은 거부한다.
 - `SELECT *`, `table.*`, alias column list와 검증 정책에서 지원하지 않는 확장 구문은 fail-closed로 처리한다.
-- 통과한 SQL만 외부에서 임의 생성할 수 없는 `ValidatedSelect`가 된다. 실제 실행 시점의 200행 상한과 statement timeout은 4단계에서 추가한다.
+- 통과한 SQL만 외부에서 임의 생성할 수 없는 `ValidatedSelect`가 된다.
 
 악의적 SQL fixture는 [malicious-sql.json](src/test/resources/security/malicious-sql.json)에 정확히 20건으로 고정되어 있다.
 
@@ -111,3 +125,30 @@ $env:OLLAMA_READ_TIMEOUT = '30s'
 - `400`과 `500`, 전송 오류, 응답 형식 오류를 구분하지만 재시도는 4단계에서 단일 attempt budget으로 구현한다.
 
 WireMock 기반 adapter 테스트와 Scripted/Fake 테스트 대역도 전체 테스트에 포함된다.
+
+## 제한된 SQL 실행과 재시도 API
+
+- Native Query 실행기는 문자열이 아니라 `ValidatedSelect`만 입력으로 받으며
+  `EntityManager.createNativeQuery(...)`에 검증된 SQL을 그대로 전달한다.
+- datasource의 `text2sql_ro` 최소 권한에 더해 `@Transactional(readOnly = true)`를 적용한다.
+- 기본 반환 상한은 200행이다. 실행기는 201행까지만 가져와 상한 초과 여부를 확인하고 응답의
+  `truncated`에 기록한다.
+- PostgreSQL `statement_timeout`은 기본 2초이며 현재 트랜잭션에만 적용한다.
+- LLM 호출은 최초 호출을 포함해 최대 3회다. 두 번째·세 번째 호출 직전에 기본 200ms·400ms
+  지수 백오프를 적용한다.
+- Ollama 5xx, SQL 검증 실패, 회복 가능한 DB 식별자 오류만 재생성한다. Ollama 4xx, DB 권한 오류,
+  timeout, 취소, 그 밖의 DB 오류는 재시도하지 않는다.
+- 시도 로그에는 무작위 correlation ID, attempt, 안정적인 결과 코드, backoff, elapsed time만
+  기록하며 질문·생성 SQL·DB 오류 원문은 기록하지 않는다.
+- 성공 응답은 `columns`, `rows`, `truncated`, `attemptCount`, `elapsedMs`만 반환한다. 실패 응답도
+  안정적인 `code`와 `attemptCount`만 반환한다.
+
+설정 기본값은 다음 환경 변수로 바꿀 수 있지만, 호출 3회·1,000행·30초의 절대 상한은 넘을 수 없다.
+
+```powershell
+$env:QUERY_MAX_ROWS = '200'
+$env:QUERY_STATEMENT_TIMEOUT = '2s'
+$env:LLM_MAX_ATTEMPTS = '3'
+$env:LLM_INITIAL_BACKOFF = '200ms'
+$env:QUERY_MAX_QUESTION_LENGTH = '1000'
+```

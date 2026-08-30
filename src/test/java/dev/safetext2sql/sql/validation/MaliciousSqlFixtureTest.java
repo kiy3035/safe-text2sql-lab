@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.safetext2sql.execution.QueryResult;
+import dev.safetext2sql.execution.SqlQueryExecutor;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +27,7 @@ class MaliciousSqlFixtureTest {
     @Test
     void blocksAllTwentyVersionedAttacksBeforeTheExecutorBoundary() throws IOException {
         List<MaliciousSqlCase> fixtures = loadFixtures();
-        RecordingNativeQueryExecutorBoundary executor = new RecordingNativeQueryExecutorBoundary();
+        RecordingSqlQueryExecutor executor = new RecordingSqlQueryExecutor();
 
         assertThat(fixtures).hasSize(20);
         assertThat(fixtures).extracting(MaliciousSqlCase::id).doesNotHaveDuplicates();
@@ -43,7 +45,7 @@ class MaliciousSqlFixtureTest {
         }
     }
 
-    private void validateThenExecute(String untrustedSql, RecordingNativeQueryExecutorBoundary executor) {
+    private void validateThenExecute(String untrustedSql, SqlQueryExecutor executor) {
         ValidatedSelect validated = validator.validate(untrustedSql);
         executor.execute(validated);
     }
@@ -61,23 +63,24 @@ class MaliciousSqlFixtureTest {
     }
 
     /**
-     * 테스트 전용 실행 경계(seam) - 호출 여부만 기록하는 가짜(Fake) 구현체.
+     * 실제 운영 실행기 인터페이스의 호출 여부만 기록하는 테스트용 가짜(Fake) 구현체다.
      * <p>
-     * 현재는 검증 통과 여부를 확인하기 위해 {@code invocationCount}만 기록한다.
-     * 4단계(SQL 실행과 재시도)에서 실제 {@code EntityManager.createNativeQuery(...)} 기반
-     * 구현체로 교체될 예정이다. 보안 테스트의 핵심은 예외 발생 여부만이 아니라
+     * 검증 실패가 {@link SqlQueryExecutor} 경계까지 도달하지 않는지 확인하기 위해
+     * {@code invocationCount}만 기록한다. 보안 테스트의 핵심은 예외 발생 여부만이 아니라
      * {@code executor 호출 횟수 == 0}임을 보장하는 것이다.
      * </p>
      */
-    private static final class RecordingNativeQueryExecutorBoundary {
+    private static final class RecordingSqlQueryExecutor implements SqlQueryExecutor {
 
         private final AtomicInteger invocationCount = new AtomicInteger();
 
-        private void execute(ValidatedSelect validatedSelect) {
+        @Override
+        public QueryResult execute(ValidatedSelect validatedSelect) {
             if (validatedSelect == null) {
                 throw new IllegalArgumentException("validatedSelect");
             }
             invocationCount.incrementAndGet();
+            return new QueryResult(List.of("unused"), List.of(), false);
         }
 
         private int invocationCount() {

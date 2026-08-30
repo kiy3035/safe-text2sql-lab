@@ -29,3 +29,20 @@
 - 명시적인 LIMIT/FETCH는 200행, JOIN은 4개, 서브쿼리는 3단계, 입력 SQL은 10,000자로 제한한다. 실제 결과 행 제한과 statement timeout은 4단계 실행기에서도 별도로 강제한다.
 - 악의적 SQL은 합성 이름만 사용한 JSON fixture 정확히 20건으로 고정한다. 각 fixture가 안정적인 거절 코드로 실패하고 테스트용 Native Query 실행 경계 호출 횟수가 0인지 함께 검증한다.
 - 새 코드의 신뢰 경계와 보안 판단은 사용자가 소스를 따라갈 수 있도록 상세한 한글 Javadoc과 의도 중심 주석으로 기록한다.
+
+## 4단계
+
+- 실행 경계는 `SqlQueryExecutor.execute(ValidatedSelect)`로 고정한다. 검증기 패키지 밖에서는
+  `ValidatedSelect`를 만들 수 없으므로 LLM 원문 문자열을 Native Query로 직접 보내는 공개 경로가 없다.
+- 행 제한을 위해 SQL 뒤에 `LIMIT` 문자열을 붙이지 않는다. JPA `setMaxResults(maxRows + 1)`로
+  최대 한 행만 더 가져와 `truncated`를 판별하고, API에는 상한 이내 행만 반환한다.
+- PostgreSQL `statement_timeout`은 바인드 값과 `set_config(..., true)`를 사용해 현재 트랜잭션에만
+  적용한다. JPA timeout hint도 함께 사용하되 보안·자원 경계의 기준은 DB timeout이다.
+- `@Transactional(readOnly = true)`는 보조 힌트로만 사용한다. 실제 권한 경계는 1단계에서 만든
+  `text2sql_ro` 계정의 테이블·컬럼 권한이며, 통합 테스트에서 계속 독립적으로 검증한다.
+- 전체 LLM 호출 예산은 최대 3회이고, attempt 2와 3 직전에 주입 가능한 `Sleeper`와
+  `BackoffPolicy`로 기본 200ms·400ms를 적용한다. 테스트에서는 실제로 기다리지 않고 기록한다.
+- Ollama 5xx, AST 정책 실패, 회복 가능한 DB 문법·식별자 오류만 재생성한다. 4xx, 권한 오류,
+  statement timeout·취소, 기타 DB 오류는 같은 요청을 반복하지 않고 즉시 안정적인 오류로 끝낸다.
+- HTTP 응답과 예외에는 질문, SQL, Ollama 본문, PostgreSQL 메시지를 넣지 않는다. 구조화 로그도
+  correlation ID, attempt, 결과 코드, backoff, elapsed time만 기록한다.

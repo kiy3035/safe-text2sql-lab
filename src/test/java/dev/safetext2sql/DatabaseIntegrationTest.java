@@ -6,15 +6,29 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.UUID;
+
+import dev.safetext2sql.execution.QueryExecutionException;
+import dev.safetext2sql.execution.QueryExecutionFailure;
+import dev.safetext2sql.execution.SqlQueryExecutor;
+import dev.safetext2sql.sql.validation.SqlValidator;
+import dev.safetext2sql.sql.validation.ValidatedSelectTestFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @SpringBootTest
+@AutoConfigureMockMvc
 class DatabaseIntegrationTest {
 
     private static final String DATABASE_NAME = "text2sql";
@@ -58,10 +72,23 @@ class DatabaseIntegrationTest {
         registry.add("spring.flyway.url", () -> jdbcUrl);
         registry.add("spring.flyway.user", () -> MIGRATION_USERNAME);
         registry.add("spring.flyway.password", () -> MIGRATION_PASSWORD);
+        // 4단계 실행기 검증에서는 작은 상한과 timeout을 사용해 테스트 시간을 줄인다.
+        // 이 설정은 실행기 쿼리에만 적용되므로 Flyway 마이그레이션에는 영향을 주지 않는다.
+        registry.add("text2sql.execution.max-rows", () -> 10);
+        registry.add("text2sql.execution.statement-timeout", () -> "100ms");
     }
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private SqlValidator sqlValidator;
+
+    @Autowired
+    private SqlQueryExecutor sqlQueryExecutor;
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
     void applicationUsesReadOnlyRoleAndLoadsDeterministicSmokeSeed() {
@@ -116,6 +143,48 @@ class DatabaseIntegrationTest {
                 .isInstanceOf(SQLException.class)
                 .extracting(throwable -> ((SQLException) throwable).getSQLState())
                 .isEqualTo("42501");
+    }
+
+    @Test
+    void nativeQueryExecutorRunsOnlyValidatedSelectAndDetectsTruncation() {
+        var validatedSelect = sqlValidator.validate(
+                "SELECT order_id FROM orders ORDER BY order_id");
+
+        var result = sqlQueryExecutor.execute(validatedSelect);
+
+        assertThat(result.columns()).containsExactly("order_id");
+        assertThat(result.rows()).hasSize(10);
+        assertThat(result.rows().getFirst()).containsExactly(1L);
+        assertThat(result.rows().getLast()).containsExactly(10L);
+        assertThat(result.truncated()).isTrue();
+    }
+
+    @Test
+    void nativeQueryExecutorEnforcesDatabaseStatementTimeout() {
+        /*
+         * pg_sleep은 운영 Allowlist에서 금지되므로 정상 검증 경로로는 이 실행기에 도달할 수 없다.
+         * 여기서는 실행기 자체의 자원 제한만 독립적으로 검증하기 위해 테스트 패키지 전용 팩터리로
+         * ValidatedSelect를 만든다. 운영 소스에는 임의 SQL을 감싸는 공개 생성 경로가 없다.
+         */
+        var delayedSelect = ValidatedSelectTestFactory.create(
+                "SELECT pg_sleep(1) AS delayed", "delayed");
+
+        assertThatThrownBy(() -> sqlQueryExecutor.execute(delayedSelect))
+                .isInstanceOf(QueryExecutionException.class)
+                .extracting(exception -> ((QueryExecutionException) exception).failure())
+                .isEqualTo(QueryExecutionFailure.STATEMENT_TIMEOUT);
+    }
+
+    @Test
+    void applicationApiStartsWithoutOllamaAndReturnsStableUnavailableError() throws Exception {
+        mockMvc.perform(post("/api/v1/text2sql/query")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"첫 주문을 알려줘\"}"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.code").value("LLM_UNAVAILABLE"))
+                .andExpect(jsonPath("$.attemptCount").value(0))
+                .andExpect(jsonPath("$.message").doesNotExist())
+                .andExpect(jsonPath("$.sql").doesNotExist());
     }
 
     private static void executeAsReadOnlyRole(String sql) throws SQLException {
