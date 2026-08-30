@@ -38,6 +38,31 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+// 웹 서버 없이 자연어 50건 정확도 실험을 실행한다. DB/Ollama 설정은 환경 변수로만 주입한다.
+tasks.register('nlExperiment', JavaExec) {
+    group = 'verification'
+    description = 'Runs the 50-question local Ollama accuracy experiment.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.safetext2sql.experiment.nl.NlAccuracyExperimentMain'
+}
+
+// benchmark seed가 적재된 로컬 DB에서만 고정 SELECT의 인덱스 전·후 실행계획을 수집한다.
+tasks.register('indexExperiment', JavaExec) {
+    group = 'verification'
+    description = 'Runs the local PostgreSQL index before/after benchmark.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.safetext2sql.experiment.index.IndexBenchmarkMain'
+}
+
+// WireMock HTTP와 실제 sleep으로 500/400 재시도 시간을 반복 측정한다.
+tasks.register('retryExperiment', JavaExec) {
+    group = 'verification'
+    description = 'Measures retry scenarios with WireMock and real 200ms/400ms backoff.'
+    dependsOn testClasses
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.safetext2sql.experiment.retry.RetryMeasurementMain'
+}
+
 // 파서 API 업그레이드 때 사라질 메서드를 조기에 발견할 수 있도록 컴파일 경고를 구체적으로 출력한다.
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs.add('-Xlint:deprecation')
