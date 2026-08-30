@@ -55,7 +55,7 @@ flowchart TD
 
 - 빈 질문·길이 초과: 400
 - 3회 안에 안전한 SQL을 만들지 못함: 422, 안정적인 오류 코드 `SQL_GENERATION_FAILED`
-- LLM 인증/요청 오류: 적절한 4xx/502 매핑
+- Ollama 4xx/요청 오류: 적절한 4xx/502 매핑
 - LLM 5xx 소진: 502
 - DB timeout/권한 오류: 내부 내용을 숨긴 503 또는 500과 안정적인 오류 코드
 
@@ -93,13 +93,12 @@ public interface SqlGenerator {
 }
 ```
 
-실제 HTTP 구현과 Scripted/Fake 구현을 분리한다. 실제 구현의 base URL, API key, model, timeout은 환경 변수로 주입한다.
+실제 HTTP 구현과 Scripted/Fake 구현을 분리한다. 실제 구현은 무료 로컬 Ollama만 사용하며 base URL, model, timeout은 환경 변수로 주입한다. 유료 외부 API adapter나 fallback은 구현하지 않는다.
 
 권장 환경 변수:
 
-- `LLM_API_BASE_URL`
-- `LLM_API_KEY`
-- `LLM_MODEL`
+- `OLLAMA_BASE_URL`
+- `OLLAMA_MODEL`
 - `LLM_TEMPERATURE`(기본 0)
 
 system prompt에는 다음을 포함한다.
@@ -361,6 +360,6 @@ Codex는 최소한 다음을 완성한다.
 - 허용된 SELECT, JOIN, 집계, 서브쿼리 테스트가 실행된다.
 - read-only DB 계정으로 쓰기가 실제 거부되는 통합 테스트가 있다.
 - 500 재시도 3개 시나리오가 자동 검증된다.
-- LLM 키가 있으면 자연어 50건 및 인덱스 실험을 실행해 결과 파일과 블로그 초안을 갱신한다.
-- LLM 키가 없으면 자동 테스트 결과만 사실대로 기록하고 실측 항목은 명확히 미실행으로 표시한다.
+- Ollama와 지정 로컬 모델이 준비되어 있으면 자연어 50건 및 인덱스 실험을 실행해 결과 파일과 블로그 초안을 갱신한다.
+- Ollama 또는 지정 로컬 모델이 준비되어 있지 않으면 자동 테스트 결과만 사실대로 기록하고 실측 항목은 명확히 `PENDING`으로 표시한다.
 - 보고서의 모든 수치가 CSV/JSON 원본으로 역추적된다.
