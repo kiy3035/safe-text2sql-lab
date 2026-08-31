@@ -155,12 +155,21 @@ $env:EXPERIMENT_RUN_ID = 'my-retry-run'
 - `results/stage5-index-20260830`: 10회 반복 요약과 `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)` 원본 60개
 - `results/stage5-retry-20260830`: 세 HTTP 시나리오 각 10회, 총 30회 원본과 요약
 
+사용자 승인 후 실행한 실제 로컬 모델 결과도 별도 디렉터리에 보존했다.
+
+- `results/stage7-qwen3-4b-instruct-20260831`: Ollama 0.33.2와 `qwen3:4b-instruct`의 자연어 50건
+  결과. 정확도 23/50(46.0%), 생성 성공 50/50, 첫 시도 검증 통과 49/50
+- `model-manifest.json`: 4.0B Q4_K_M, 2,497,293,803 bytes, Apache-2.0, 전체 model digest
+
 세 결과의 metadata는 측정 코드 SHA `5c94665238b49b41a214ac8247c0aa59929f74b6`와
 OS·CPU·RAM·Java·PostgreSQL·Ollama/model 정보를 기록한다. 비밀번호와 JDBC/Ollama URL은 기록하지 않는다.
 
 ## 로컬 Ollama 연동 설정
 
-2단계에서는 Ollama의 `/api/generate` HTTP adapter만 구현했다. Ollama 프로그램이나 모델을 자동으로 설치·실행하지 않는다. 이미 로컬에서 준비된 Ollama를 나중에 연결할 경우 다음 환경 변수를 지정한다.
+저장소는 Ollama의 `/api/generate` HTTP adapter를 제공하지만 빌드나 애플리케이션 시작 과정에서
+Ollama 프로그램·모델을 자동 설치하지 않는다. 7단계 실측에서는 사용자의 명시적 승인 후 Windows
+Winget의 공식 `Ollama.Ollama` 패키지 0.33.2와 Apache-2.0 모델을 별도로 설치했다. 로컬 모델을
+연결할 경우 다음 환경 변수를 지정한다.
 
 ```powershell
 $env:SQL_GENERATOR_PROVIDER = 'ollama'
@@ -168,7 +177,7 @@ $env:OLLAMA_BASE_URL = 'http://localhost:11434'
 $env:OLLAMA_MODEL = '<local-model-name-and-version>'
 $env:LLM_TEMPERATURE = '0'
 $env:OLLAMA_CONNECT_TIMEOUT = '2s'
-$env:OLLAMA_READ_TIMEOUT = '30s'
+$env:OLLAMA_READ_TIMEOUT = '120s'
 ```
 
 - 요청은 `stream=false`로 보내며 SQL 문자열만 응답하도록 system prompt를 제공한다.
@@ -180,11 +189,33 @@ $env:OLLAMA_READ_TIMEOUT = '30s'
 
 WireMock 기반 adapter 테스트와 Scripted/Fake 테스트 대역도 전체 테스트에 포함된다.
 
-### 실제 로컬 모델 측정 준비
+### 실제 로컬 모델 측정과 보존 결과
 
-이 저장소 작업에서는 Ollama 프로그램과 모델을 설치하지 않았다. 사용자가 Ollama를 별도로 준비한
-뒤 모델을 설치하고 실행할 때만 다음 명령을 사용한다. `<local-model-name-and-version>`에는 재현
-가능한 정확한 model tag를 넣고 결과 metadata에도 같은 값을 남긴다.
+실측 장비는 RAM 약 8GB와 Intel 내장 GPU 환경이어서 7B보다 작은 공식
+`qwen3:4b-instruct` Q4_K_M 모델을 선택했다. Ollama library의 파일 크기는 약 2.5GB이고 실제 로컬
+API가 반환한 크기는 2,497,293,803 bytes였다. 전체 digest는 다음과 같다.
+
+```text
+0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0
+```
+
+모델명·digest·quantization·Apache-2.0 라이선스와 공식 출처는
+[model-manifest.json](results/stage7-qwen3-4b-instruct-20260831/model-manifest.json)에 보존했다.
+Ollama Windows 설치와 모델 정보는 [Ollama Windows 문서](https://docs.ollama.com/windows),
+[Ollama model library](https://ollama.com/library/qwen3:4b-instruct),
+[Qwen3-4B-Instruct-2507 모델 카드](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507)를 기준으로
+확인했다.
+
+Windows에 Ollama가 없다면 사용자가 설치를 승인하고 라이선스를 확인한 뒤 공식 패키지를 설치한다.
+
+```powershell
+winget install --id Ollama.Ollama --exact
+ollama pull qwen3:4b-instruct
+ollama list
+```
+
+설치된 Ollama 앱은 기본적으로 loopback API를 백그라운드에서 제공한다. 수동 실행이 필요한 환경만
+첫 번째 터미널에서 다음 명령을 사용한다.
 
 첫 번째 터미널:
 
@@ -195,20 +226,24 @@ ollama serve
 다른 터미널:
 
 ```powershell
-ollama pull <local-model-name-and-version>
+ollama pull qwen3:4b-instruct
 ollama list
 
 $env:SQL_GENERATOR_PROVIDER = 'ollama'
-$env:OLLAMA_BASE_URL = 'http://localhost:11434'
-$env:OLLAMA_MODEL = '<local-model-name-and-version>'
-$env:OLLAMA_VERSION = '<installed-ollama-version>'
+$env:OLLAMA_BASE_URL = 'http://127.0.0.1:11434'
+$env:OLLAMA_MODEL = 'qwen3:4b-instruct'
+$env:OLLAMA_VERSION = '0.33.2'
 $env:LLM_TEMPERATURE = '0'
-$env:EXPERIMENT_RUN_ID = 'my-nl-ollama-run'
+$env:OLLAMA_CONNECT_TIMEOUT = '2s'
+$env:OLLAMA_READ_TIMEOUT = '120s'
+$env:EXPERIMENT_RUN_ID = 'my-qwen3-4b-run'
 .\gradlew.bat nlExperiment
 ```
 
-현재 저장된 자연어 결과는 Ollama 미설치 상태의 `PENDING`이며, 위 명령을 이 프로젝트 작업에서
-실행한 것처럼 해석하면 안 된다.
+실측 run `stage7-qwen3-4b-instruct-20260831`은 고정 seed 결과 비교에서 23/50(46.0%)이었다.
+temperature 0이어도 하드웨어, Ollama/model digest와 실행 시점이 바뀌면 결과가 달라질 수 있다.
+또한 결과 집합이 같아도 SQL 의미가 틀린 우연한 정답이 포함될 수 있으므로 이 수치를 일반적인
+Text2SQL 성능으로 해석하면 안 된다.
 
 ## 제한된 SQL 실행과 재시도 API
 
