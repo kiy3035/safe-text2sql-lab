@@ -2,32 +2,43 @@
 
 ## 1. 보고서 범위
 
-이 문서는 저장소에 보존된 자동 테스트와 5단계 결과 파일만 요약한다. 모든 데이터는 합성
-커머스 seed다. 자연어 50건의 실제 모델 정확도는 Ollama와 모델이 없어 측정하지 않았으며
-`PENDING`이다.
+이 문서는 저장소에 보존된 자동 테스트, 5단계 인덱스·재시도 결과와 7단계 실제 로컬 모델
+결과를 요약한다. 모든 데이터는 합성 커머스 seed다. 5단계에는 Ollama가 없어 자연어 정확도를
+`PENDING`으로 남겼고, 7단계에는 사용자의 설치 승인 후 같은 50건을 실제 모델로 측정했다.
 
-측정 코드 SHA는 `5c94665238b49b41a214ac8247c0aa59929f74b6`이다. 이후 문서화 커밋은
-측정 원본을 변경하지 않는다.
+5단계 인덱스·재시도 측정 코드 SHA는 `5c94665238b49b41a214ac8247c0aa59929f74b6`이고,
+7단계 자연어 측정 코드 SHA는 `a3b984bd7a9ac5eef05a114126a555ab26c8247d`이다. 이후 문서화
+커밋은 두 측정 원본을 변경하지 않는다.
 
 ## 2. 실행 환경
 
 | 항목 | 값 |
 | --- | --- |
-| 실행 시각 | 2026-08-30 UTC, run별 metadata에 나노초 단위 기록 |
+| 실행 시각 | 자연어 실측 2026-08-31T11:15:56Z, 나머지는 run별 metadata에 기록 |
 | OS | Windows 11 10.0 amd64 |
 | CPU | Intel64 Family 6 Model 140 Stepping 1, GenuineIntel |
 | RAM | 8,379,490,304 bytes |
 | Java | Eclipse Temurin 21.0.8 |
 | Docker Engine | 24.0.7 |
 | PostgreSQL | 16.9 Alpine |
-| Ollama | `NOT_INSTALLED` |
-| 로컬 LLM 모델 | `PENDING` |
+| Ollama | 0.33.2 |
+| 로컬 LLM 모델 | `qwen3:4b-instruct`, 4.0B, Q4_K_M, 2,497,293,803 bytes |
+| 모델 digest | `0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0` |
+| 모델 라이선스 | Apache-2.0 |
+| temperature | 0.0 |
+| Ollama read timeout | 자연어 실험에서 120초 |
 
 환경 근거:
 
+- [7단계 자연어 metadata](../results/stage7-qwen3-4b-instruct-20260831/metadata.json)
+- [모델 manifest](../results/stage7-qwen3-4b-instruct-20260831/model-manifest.json)
 - [자연어 metadata](../results/stage5-nl-pending-20260830/metadata.json)
 - [인덱스 metadata](../results/stage5-index-20260830/metadata.json)
 - [재시도 metadata](../results/stage5-retry-20260830/metadata.json)
+
+자연어 실측에서는 `ollama ps`가 모델 실행 장치를 `100% CPU`, context를 4,096으로 표시했다.
+Windows 첫 예열 요청은 13,907ms였고, 실험 프로세스를 다시 시작한 뒤 첫 질문은 cold load를 포함해
+65,355ms가 걸렸다. 이 값들은 저사양 CPU 로컬 환경이라는 결과 해석의 일부다.
 
 ## 3. 자동 테스트와 보안 fixture
 
@@ -75,28 +86,69 @@ fixture 원본은 [malicious-sql.json](../src/test/resources/security/malicious-
 정규화, 순서, 중복 행 정책에 맞춰 결과 집합을 비교한다. Golden SQL 50건은 모두 AST 게이트와
 read-only Native Query 실행을 통과했다.
 
-### 4.2 실제 상태
+### 4.2 7단계 실제 결과
 
 | 지표 | 결과 |
 | --- | --- |
-| 상태 | `PENDING` |
-| 사유 | `OLLAMA_NOT_CONFIGURED` |
+| 상태 | `COMPLETED` |
 | 질문 수 | 50 |
-| 정확도 | 측정 안 함 (`null`) |
-| 생성 성공률 | 측정 안 함 (`null`) |
-| 첫 시도 검증 통과율 | 측정 안 함 (`null`) |
-| 평균·중앙 attempt | 측정 안 함 (`null`) |
+| 전체 정확도 | 23/50 (46.0%) |
+| 생성 성공률 | 50/50 (100.0%) |
+| 첫 시도 검증 통과율 | 49/50 (98.0%) |
+| 평균·중앙 attempt | 1.02 / 1.0 |
+| 실패 | 결과 불일치 26건, DB timeout 1건 |
 
-Ollama 프로그램과 모델을 설치하지 않았기 때문에 Fake/Scripted 결과를 실제 정확도로 대체하지
-않았다. 따라서 “50건 중 몇 건을 맞혔다”는 결론은 이 보고서에 없다.
+난이도별 결과:
+
+| 난이도 | 정답 | 정확도 |
+| --- | ---: | ---: |
+| EASY | 11/23 | 47.8% |
+| MEDIUM | 8/19 | 42.1% |
+| HARD | 4/8 | 50.0% |
+
+비교 방식별 결과:
+
+| 비교 방식 | 정답 | 정확도 |
+| --- | ---: | ---: |
+| SCALAR | 11/28 | 39.3% |
+| ORDERED | 5/9 | 55.6% |
+| UNORDERED | 7/13 | 53.8% |
+
+DB timeout 1건은 실패 경로에서 `elapsedMs=0`으로 기록되므로 latency 집계에서 제외했다. 나머지
+49건의 LLM 생성·검증·실행 전체 시간은 평균 12,668.4ms, 중앙값 10,358ms, 최소 6,077ms,
+최대 65,355ms, nearest-rank p95 22,498ms였다. 첫 질문의 cold load와 CPU·Docker 경합이 포함된
+한 번의 로컬 실행 결과이므로 모델 자체의 일반적인 처리량으로 해석하면 안 된다.
+
+### 4.3 실패와 우연한 정답
+
+결과 불일치 26건에서는 다음 패턴을 확인했다.
+
+- 모델이 `PAID`, `CANCELLED`, `SEOUL`, `GOLD` 같은 합성 데이터 값을 소문자나 한국어로 추측했다.
+- 질문이 요구한 projection보다 컬럼을 더 넣거나 빼서 행의 모양이 달라졌다.
+- “7월 1일”을 하루가 아니라 7월 전체로, “이후” 경계를 초과가 아닌 포함에 가깝게 해석했다.
+- 동률 정렬 기준을 추가하지 않거나 오름차순 질문에 내림차순을 사용했다.
+- 시간대별 집계에서 `EXTRACT(hour ...)` 대신 날짜까지 포함하는 `DATE_TRUNC('hour', ...)`를 사용했다.
+
+`NL-021`은 상태별 100행 집계 SQL이었지만 CPU에서 모델을 실행하는 동안 Docker DB가 기본 2초
+statement timeout을 넘겨 `DB_TIMEOUT`으로 끝났다. 정책상 timeout은 재시도하지 않았으며 결과도
+실패로 유지했다.
+
+`NL-045`는 첫 SQL의 해석 불가능한 별칭을 AST gate가 차단했고 200ms 뒤 두 번째 SQL이 생성됐다.
+두 번째 SQL은 `category_id NOT IN (product_id ...)`라 질문의 의미와 맞지 않지만, 고정 seed에서는
+Golden과 똑같이 0을 반환해 정답으로 집계됐다. 따라서 46.0%는 **이 seed의 결과 집합 일치율**이지
+SQL 의미 정확도의 완전한 측정값이 아니다.
+
+5단계 원본 `stage5-nl-pending-20260830`은 `PENDING / OLLAMA_NOT_CONFIGURED` 상태를 그대로
+보존했다. 7단계 실측이 과거에 실행되지 않은 측정을 실행한 것처럼 덮어쓰지 않기 위해서다.
 
 원본:
 
 - [질문 50건](../experiments/nl-questions.jsonl)
 - [Golden SQL 50건](../experiments/golden-sql.jsonl)
-- [PENDING 요약](../results/stage5-nl-pending-20260830/nl-summary.json)
-- [자연어 CSV](../results/stage5-nl-pending-20260830/nl-results.csv)
-- [자연어 JSON](../results/stage5-nl-pending-20260830/nl-results.json)
+- [실측 요약](../results/stage7-qwen3-4b-instruct-20260831/nl-summary.json)
+- [실측 CSV](../results/stage7-qwen3-4b-instruct-20260831/nl-results.csv)
+- [실측 JSON](../results/stage7-qwen3-4b-instruct-20260831/nl-results.json)
+- [과거 PENDING 요약](../results/stage5-nl-pending-20260830/nl-summary.json)
 
 ## 5. 인덱스 전후 실행계획
 
@@ -179,9 +231,11 @@ blocks 중앙값은 모든 조건에서 0이었다. 직전 migration과 반복 �
 2. 인덱스 실험은 한 노트북·한 Docker 실행·고정 합성 분포의 결과다. 캐시, 실행 순서, Docker 자원,
    데이터 분포가 달라지면 계획과 시간이 달라질 수 있다.
 3. WireMock 결과는 retry orchestration의 측정이며 실제 모델 추론 성능이 아니다.
-4. 자연어 정확도는 아직 측정하지 않았다. Ollama와 지정 모델이 준비되기 전까지 계속
-   `PENDING`으로 남긴다.
-5. 이 실험은 로컬 개인 프로젝트이며 인증, rate limit, 운영 모니터링, 다중 tenant 격리를 포함하지
+4. 자연어 정확도 46.0%는 한 모델·temperature 0·한 번의 고정 seed 실행 결과다. 다른 모델이나
+   반복 run의 분산을 나타내지 않으며, 우연히 같은 결과를 낸 의미 오류도 정답에 포함될 수 있다.
+5. LLM과 PostgreSQL을 같은 4코어 CPU 환경에서 실행해 cold load와 자원 경합이 latency 및 timeout에
+   영향을 줬다. 49건 latency를 모델 단독 benchmark로 일반화하면 안 된다.
+6. 이 실험은 로컬 개인 프로젝트이며 인증, rate limit, 운영 모니터링, 다중 tenant 격리를 포함하지
    않는다.
 
 방어 범위의 상세 내용은 [위협 모델](threat-model.md)을 참고한다.

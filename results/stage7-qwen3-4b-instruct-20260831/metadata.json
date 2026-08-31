@@ -1,0 +1,22 @@
+{
+  "runId" : "stage7-qwen3-4b-instruct-20260831",
+  "capturedAt" : "2026-08-31T11:15:56.044158200Z",
+  "commitSha" : "a3b984bd7a9ac5eef05a114126a555ab26c8247d",
+  "os" : "Windows 11 10.0 (amd64)",
+  "cpu" : "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+  "ramBytes" : 8379490304,
+  "javaVersion" : "21.0.8",
+  "postgresqlVersion" : "16.9",
+  "ollamaVersion" : "0.33.2",
+  "modelName" : "qwen3:4b-instruct",
+  "temperature" : 0.0,
+  "promptSha256" : "57ece3fc6553cda7c89d146ad647aea2c309abf8c094829e49f4f02f25e4970f",
+  "dataCounts" : {
+    "orders" : 100,
+    "categories" : 5,
+    "customers" : 50,
+    "order_items" : 100,
+    "products" : 20,
+    "payments" : 100
+  }
+}

@@ -87,3 +87,21 @@
   명령만 제공하고, 현재 보존 결과는 `NOT_INSTALLED`와 `PENDING`임을 바로 옆에 명시한다.
 - 빈 환경 검증은 임의의 기존 DB를 재사용하지 않고 별도 Compose project와 새 volume에서 수행한다.
   실험이 끝나면 해당 project의 컨테이너와 volume만 제거해 다른 로컬 데이터를 건드리지 않는다.
+
+## 7단계
+
+- 사용자의 명시적 승인 후 Windows Winget 공식 패키지로 Ollama 0.33.2를 사용자 영역에 설치한다.
+  프로젝트 빌드가 프로그램을 자동 설치하지는 않으며, 유료 API나 원격 fallback도 추가하지 않는다.
+- 7.8GB RAM과 Intel 내장 GPU 환경에서는 7B Q4 모델보다 메모리 여유가 있는
+  `qwen3:4b-instruct` 4.0B Q4_K_M을 사용한다. non-thinking instruct 모델이라 SQL-only 지시와
+  맞고, Apache-2.0이어서 연구 전용 라이선스 모델보다 공개 블로그 재현 조건이 단순하다.
+- model tag만으로는 이후 같은 파일을 보장할 수 없으므로 전체 digest, byte 크기, quantization,
+  라이선스와 공식 출처를 결과 디렉터리의 `model-manifest.json`에 함께 보존한다. 모델 바이너리는
+  Git에 넣지 않는다.
+- CPU cold load가 30초 기본 read timeout을 넘길 수 있어 실제 자연어 실험에만 120초를 주입한다.
+  제품 기본값을 임의로 늘리지는 않으며, 결과 문서에 같은 하드웨어 조건과 첫 요청 지연을 기록한다.
+- 5단계의 PENDING run은 당시 사실을 보존하기 위해 덮어쓰지 않고, 실제 50건은 새 run ID로
+  추가한다. 중단된 첫 실행은 결과 artifact가 없어 폐기하고 새 DB volume에서 50건을 처음부터
+  다시 실행한다.
+- 정확도는 고정 seed의 결과 집합 일치율로만 해석한다. 의미가 틀린 SQL도 우연히 같은 결과를 낼
+  수 있으므로, 대표 사례를 원본 SQL과 함께 보고서에 공개하고 의미 정확성 보장으로 일반화하지 않는다.

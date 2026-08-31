@@ -1,8 +1,8 @@
 # LLM이 만든 SQL을 바로 실행하지 않기: AST 검증과 DB 권한을 겹친 로컬 실험
 
-> 이 글은 합성 커머스 데이터와 로컬 Docker/Ollama adapter로 만든 개인 실험 기록이다. 회사
-> 프로젝트나 운영 배포 경험이 아니다. 현재 Ollama와 로컬 모델이 설치되지 않아 자연어 50건의
-> 실제 정확도는 `PENDING`이다.
+> 이 글은 합성 커머스 데이터와 로컬 Docker/Ollama로 만든 개인 실험 기록이다. 회사 프로젝트나
+> 운영 배포 경험이 아니다. 자연어 50건은 Ollama 0.33.2와 `qwen3:4b-instruct`로 한 번 실제
+> 측정했으며, 결과가 다른 모델·데이터·장비에도 그대로 적용된다고 주장하지 않는다.
 
 ## 시작: SQL을 잘 만드는 것과 안전하게 실행하는 것은 다른 문제였다
 
@@ -26,6 +26,8 @@ seed는 주문 100건이고, 인덱스 실험에서는 orders/order_items/paymen
 
 실제 LLM 연동은 로컬 Ollama만 허용했다. 유료 API, 무료 체험, 결제수단이 필요한 SaaS,
 원격 fallback은 구현하지 않았다. 자동 테스트에서는 Scripted/Fake LLM과 WireMock을 사용했다.
+실측에는 Ollama 0.33.2와 Apache-2.0인 `qwen3:4b-instruct` 4.0B Q4_K_M 모델을 사용했다. 모델
+digest는 `0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0`으로 남겼다.
 
 측정 환경은 Windows 11, Intel64 Family 6 Model 140 CPU, RAM 8,379,490,304 bytes, Java 21.0.8,
 Docker Engine 24.0.7이었다. 각 결과에는 이 정보와 측정 코드 SHA를 함께 저장했다.
@@ -134,18 +136,44 @@ CTE와 주석 우회 등 정확히 20건을 넣었다.
 정책에서 실행 경계에 도달하지 않았다는 증거다. 미지원 문법과 검증기 오류는 계속 fail-closed로
 다뤄야 하고, 라이브러리 업그레이드 때 회귀 테스트가 필요하다.
 
-## 자연어 50건 정확도: 아직 PENDING
+## 자연어 50건 정확도: 23건 결과 일치
 
 자연어 질문 50건과 Golden SQL 50건을 작성했다. 질문별 비교 방식은 단일 값 `SCALAR`, 순위처럼
 순서가 중요한 `ORDERED`, 순서가 중요하지 않은 `UNORDERED`로 구분했다. 생성 SQL 문자열이 Golden
 문자열과 같은지는 보지 않고, 고정 seed DB에서 실행한 결과 집합을 비교한다.
 
-Golden SQL 50건은 모두 AST 검증과 read-only Native Query 실행을 통과했다. 하지만 이 실행
-환경에는 Ollama와 로컬 모델이 설치되지 않았다. 그래서 정확도, 생성 성공률, 첫 시도 검증 통과율,
-평균·중앙 attempt 수를 모두 `null`로 기록하고 상태를 `PENDING / OLLAMA_NOT_CONFIGURED`로 남겼다.
+5단계에서는 모델이 없어 `PENDING`으로 남겼지만, 사용자 승인 후 Ollama 0.33.2와
+`qwen3:4b-instruct`를 설치해 같은 runner를 실행했다. temperature는 0, prompt SHA-256은
+`57ece3fc6553cda7c89d146ad647aea2c309abf8c094829e49f4f02f25e4970f`였다. 실제 정확도는 23/50, 46.0%였다.
 
-Fake LLM으로 50건을 성공시키는 자동 테스트는 runner의 계산 로직을 검증할 뿐 실제 모델 정확도가
-아니다. 이 둘을 섞지 않는 것이 이 프로젝트에서 가장 중요한 측정 원칙 중 하나였다.
+| 지표 | 결과 |
+| --- | ---: |
+| SQL 생성 성공 | 50/50 (100.0%) |
+| 첫 시도 AST 검증 통과 | 49/50 (98.0%) |
+| 결과 집합 일치 | 23/50 (46.0%) |
+| 평균 / 중앙 attempt | 1.02 / 1.0 |
+| 결과 불일치 / DB timeout | 26 / 1 |
+
+난이도별 결과는 EASY 11/23(47.8%), MEDIUM 8/19(42.1%), HARD 4/8(50.0%)이었다. 비교 방식별로는
+SCALAR 11/28(39.3%), ORDERED 5/9(55.6%), UNORDERED 7/13(53.8%)이었다. 이번 한 번의 작은 표본에서는
+난이도가 높을수록 정확도가 단조롭게 낮아지지 않았다. 그러므로 이 분류만으로 모델 능력을
+일반화할 수 없다.
+
+실패는 꽤 구체적이었다. 합성 seed의 상태 값은 `PAID`, `CANCELLED`처럼 대문자인데 모델은
+`completed`, `cancelled` 같은 값을 추측했다. `SEOUL`을 `서울`로, `GOLD`를 `gold`로 생성한 경우도
+있었다. 일부 SQL은 필요한 컬럼을 빼거나 더했고, 날짜 경계와 정렬 방향, 동률 순서를 다르게
+해석했다. 생성 성공 100%와 결과 정확도 46.0% 사이의 차이는 문법적으로 실행 가능한 SQL이 질문에
+맞는 SQL이라는 보장이 없음을 보여준다.
+
+AST gate가 실제로 개입한 사례도 있었다. `NL-045` 첫 SQL은 정의되지 않은 별칭의 컬럼을 참조해
+거절됐고, 200ms 후 생성한 두 번째 SQL은 검증·실행됐다. 하지만 두 번째 SQL도 질문의 의미와 맞지
+않았고 고정 seed에서 우연히 Golden과 같은 0을 반환했다. 결과 비교는 이 항목을 정답으로 센다.
+따라서 46.0%는 이 seed의 결과 일치율이며 의미 정확도의 완전한 측정값이 아니다.
+
+`NL-021`의 단순 상태별 집계는 LLM과 Docker PostgreSQL이 같은 4코어 CPU를 쓰는 동안 2초 DB
+timeout을 넘어 실패했다. 나머지 49건의 생성·검증·실행 전체 시간은 평균 12,668.4ms, 중앙값
+10,358ms, 최소 6,077ms, 최대 65,355ms, p95 22,498ms였다. 첫 질문에는 65초 cold load가 포함돼
+있고 모델은 `ollama ps`에서 100% CPU로 표시됐다. 모델 단독 처리량 benchmark로 볼 수 없는 이유다.
 
 ## 인덱스 전후 실행계획
 
@@ -195,7 +223,8 @@ HTTP 초기화 비용이 포함돼 최대와 p95가 1497ms였다. 보기 좋은 
 - 인증, 사용자별 권한, rate limit, 동시 실행량 제한, 운영 감사와 TLS가 없다.
 - 200행과 2초 제한은 도움이 되지만 높은 동시성의 자원 고갈을 완전히 막지 않는다.
 - JSqlParser, Hibernate, JDBC와 PostgreSQL 자체의 결함 가능성이 남는다.
-- 로컬 Ollama 모델의 출처·무결성·라이선스는 아직 검증하지 않았다.
+- 사용한 모델의 tag·digest·Apache-2.0 라이선스는 기록했지만, 공급망 전체의 무결성을 독립적으로
+  감사하거나 모델 동작을 검증한 것은 아니다.
 
 따라서 결론은 “LLM SQL이 안전해졌다”가 아니다. **신뢰할 수 없는 출력을 실행 전에 어떤 좁은
 정책으로 제한했고, DB 최소 권한과 자원 제한을 어떻게 겹쳤는지 테스트 가능한 형태로 만들었다**가
@@ -229,8 +258,23 @@ $env:EXPERIMENT_RUN_ID = 'my-retry-run'
 .\gradlew.bat retryExperiment
 ```
 
-자연어 실제 정확도는 Ollama와 모델이 이미 준비된 경우에만 측정한다. 이 글의 결과에는 해당 실측이
-없다. 자세한 명령과 결과 파일 연결은 프로젝트 README와 실험 보고서에 정리했다.
+이 글의 자연어 결과를 재현하려면 Ollama 0.33.2에서 모델을 준비하고 CPU cold load를 고려해 read
+timeout을 120초로 늘린다.
+
+```powershell
+ollama pull qwen3:4b-instruct
+$env:SQL_GENERATOR_PROVIDER = 'ollama'
+$env:OLLAMA_BASE_URL = 'http://127.0.0.1:11434'
+$env:OLLAMA_MODEL = 'qwen3:4b-instruct'
+$env:OLLAMA_VERSION = '0.33.2'
+$env:LLM_TEMPERATURE = '0'
+$env:OLLAMA_READ_TIMEOUT = '120s'
+$env:EXPERIMENT_RUN_ID = 'my-qwen3-4b-run'
+.\gradlew.bat nlExperiment
+```
+
+모델 tag는 나중에 다른 digest를 가리킬 수 있으므로 실행 전 `ollama list`와 저장된 model manifest를
+대조해야 한다. 자세한 결과 파일 연결은 프로젝트 README와 실험 보고서에 정리했다.
 
 ## 마무리
 
@@ -238,5 +282,6 @@ $env:EXPERIMENT_RUN_ID = 'my-retry-run'
 과정이었다. LLM은 생성하고, AST는 허용 범위를 판단하며, 실행기는 자원을 제한하고, DB 계정은
 마지막 권한 경계를 담당한다.
 
-그리고 측정되지 않은 것은 비워 두었다. 자연어 50건 정확도는 모델이 준비된 뒤 실제로 실행하기
-전까지 `PENDING`이다. 그 빈칸까지 포함하는 것이 재현 가능한 실험 결과라고 생각한다.
+5단계에서는 측정되지 않은 값을 `PENDING`으로 비워 뒀고, 모델을 실제로 준비한 뒤에야 46.0%를
+기록했다. 예상보다 낮은 정확도, 우연한 정답, CPU 경합으로 생긴 timeout까지 그대로 남기는 것이
+재현 가능한 실험 결과라고 생각한다.

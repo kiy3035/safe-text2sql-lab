@@ -33,19 +33,90 @@ function Format-Decimal {
     return $Value.ToString($Pattern, $invariantCulture)
 }
 
-# 자연어 실험은 실제 모델이 없었던 실행이다. null 정확도를 숫자로 바꾸는 문서 회귀를 먼저 막는다.
-$nlSummary = Get-Content -LiteralPath (
+# 5단계 PENDING 결과는 당시 Ollama가 없었다는 역사적 원본이므로, 7단계 실측을 추가해도 덮어쓰지 않는다.
+$pendingNlSummary = Get-Content -LiteralPath (
     Join-Path $repositoryRoot 'results/stage5-nl-pending-20260830/nl-summary.json'
 ) -Raw | ConvertFrom-Json
-if ($nlSummary.status -ne 'PENDING' -or $nlSummary.pendingReason -ne 'OLLAMA_NOT_CONFIGURED') {
-    throw 'Natural-language result must remain PENDING / OLLAMA_NOT_CONFIGURED.'
+if ($pendingNlSummary.status -ne 'PENDING' -or $pendingNlSummary.pendingReason -ne 'OLLAMA_NOT_CONFIGURED') {
+    throw 'Historical natural-language result must remain PENDING / OLLAMA_NOT_CONFIGURED.'
 }
-if ($null -ne $nlSummary.correctCount -or $null -ne $nlSummary.accuracy) {
-    throw 'Unmeasured natural-language accuracy must remain null.'
+if ($null -ne $pendingNlSummary.correctCount -or $null -ne $pendingNlSummary.accuracy) {
+    throw 'Historical unmeasured natural-language accuracy must remain null.'
 }
-Assert-ContainsText 'blog draft' $blog '`PENDING / OLLAMA_NOT_CONFIGURED`'
-Assert-ContainsText 'experiment report' $report '| 상태 | `PENDING` |'
-Assert-ContainsText 'experiment report' $report '| 정확도 | 측정 안 함 (`null`) |'
+Assert-ContainsText 'experiment report' $report '`stage5-nl-pending-20260830`은 `PENDING / OLLAMA_NOT_CONFIGURED`'
+
+# 7단계 실제 모델 결과는 summary만 믿지 않고 JSON/CSV 50행을 다시 집계해 문서 수치와 교차 검증한다.
+$actualRunDirectory = Join-Path $repositoryRoot 'results/stage7-qwen3-4b-instruct-20260831'
+$actualNlSummary = Get-Content -LiteralPath (Join-Path $actualRunDirectory 'nl-summary.json') -Raw |
+    ConvertFrom-Json
+$actualNlResults = @(Get-Content -LiteralPath (Join-Path $actualRunDirectory 'nl-results.json') -Raw |
+    ConvertFrom-Json)
+$actualNlCsv = @(Import-Csv -LiteralPath (Join-Path $actualRunDirectory 'nl-results.csv'))
+$actualNlMetadata = Get-Content -LiteralPath (Join-Path $actualRunDirectory 'metadata.json') -Raw |
+    ConvertFrom-Json
+$modelManifest = Get-Content -LiteralPath (Join-Path $actualRunDirectory 'model-manifest.json') -Raw |
+    ConvertFrom-Json
+
+$actualCorrect = @($actualNlResults | Where-Object { $_.correct }).Count
+$actualGenerated = @($actualNlResults | Where-Object { $_.generationSucceeded }).Count
+$actualFirstPass = @($actualNlResults | Where-Object { $_.firstAttemptValidationPassed }).Count
+$actualAttemptSum = ($actualNlResults | Measure-Object -Property attemptCount -Sum).Sum
+$actualRetried = @($actualNlResults | Where-Object { $_.attemptCount -gt 1 })
+$actualMismatches = @($actualNlResults | Where-Object { $_.status -eq 'RESULT_MISMATCH' }).Count
+$actualTimeouts = @($actualNlResults | Where-Object { $_.status -eq 'DB_TIMEOUT' }).Count
+
+if ($actualNlSummary.status -ne 'COMPLETED' -or $null -ne $actualNlSummary.pendingReason `
+        -or $actualNlResults.Count -ne 50 -or $actualNlCsv.Count -ne 50) {
+    throw 'Actual natural-language run must contain 50 completed JSON and CSV results.'
+}
+if ($actualCorrect -ne 23 -or $actualGenerated -ne 50 -or $actualFirstPass -ne 49 `
+        -or $actualAttemptSum -ne 51 -or $actualMismatches -ne 26 -or $actualTimeouts -ne 1) {
+    throw 'Actual natural-language result counts changed unexpectedly.'
+}
+if ($actualNlSummary.correctCount -ne $actualCorrect -or $actualNlSummary.accuracy -ne 0.46 `
+        -or $actualNlSummary.generationSuccessCount -ne $actualGenerated `
+        -or $actualNlSummary.firstAttemptValidationPassCount -ne $actualFirstPass `
+        -or $actualNlSummary.averageAttemptCount -ne 1.02 -or $actualNlSummary.medianAttemptCount -ne 1.0) {
+    throw 'Actual natural-language summary does not match its raw result rows.'
+}
+if ($actualRetried.Count -ne 1 -or $actualRetried[0].id -ne 'NL-045' `
+        -or $actualRetried[0].generatedSql.Count -ne 2 -or -not $actualRetried[0].correct) {
+    throw 'Expected only NL-045 to recover on its second generated SQL.'
+}
+if ($actualNlMetadata.modelName -ne 'qwen3:4b-instruct' -or $actualNlMetadata.ollamaVersion -ne '0.33.2' `
+        -or $actualNlMetadata.temperature -ne 0.0) {
+    throw 'Actual run metadata changed model, Ollama version, or temperature.'
+}
+if ($modelManifest.modelName -ne $actualNlMetadata.modelName `
+        -or $modelManifest.digest -ne '0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0' `
+        -or $modelManifest.quantization -ne 'Q4_K_M' -or $modelManifest.license -ne 'Apache-2.0' `
+        -or $modelManifest.runtimeObservation.processor -ne '100% CPU' `
+        -or $modelManifest.runtimeObservation.warmupWallMs -ne 13907) {
+    throw 'Model manifest does not match the measured model identity.'
+}
+
+# 실패 경로는 현재 runner가 elapsedMs=0을 기록하므로 실제 시간이 있는 49건만 latency 통계에 넣는다.
+$actualLatencies = @($actualNlResults | Where-Object { $_.elapsedMs -gt 0 } |
+    ForEach-Object { [double]$_.elapsedMs } | Sort-Object)
+$latencyCount = $actualLatencies.Count
+$latencyAverage = [math]::Round(($actualLatencies | Measure-Object -Average).Average, 1)
+$latencyMedian = $actualLatencies[[math]::Floor($latencyCount / 2)]
+$latencyP95 = $actualLatencies[[math]::Ceiling($latencyCount * 0.95) - 1]
+if ($latencyCount -ne 49 -or $latencyAverage -ne 12668.4 -or $latencyMedian -ne 10358 `
+        -or $actualLatencies[0] -ne 6077 -or $actualLatencies[-1] -ne 65355 -or $latencyP95 -ne 22498) {
+    throw 'Actual natural-language latency statistics changed unexpectedly.'
+}
+
+Assert-ContainsText 'blog draft' $blog '실제 정확도는 23/50, 46.0%였다.'
+Assert-ContainsText 'experiment report' $report '| 전체 정확도 | 23/50 (46.0%) |'
+Assert-ContainsText 'experiment report' $report '| 생성 성공률 | 50/50 (100.0%) |'
+Assert-ContainsText 'experiment report' $report '| 첫 시도 검증 통과율 | 49/50 (98.0%) |'
+Assert-ContainsText 'experiment report' $report '| 평균·중앙 attempt | 1.02 / 1.0 |'
+Assert-ContainsText 'experiment report' $report '| 실패 | 결과 불일치 26건, DB timeout 1건 |'
+Assert-ContainsText 'experiment report' $report $modelManifest.digest
+Assert-ContainsText 'experiment report' $report '평균 12,668.4ms, 중앙값 10,358ms, 최소 6,077ms,'
+Assert-ContainsText 'experiment report' $report '최대 65,355ms, nearest-rank p95 22,498ms'
+Assert-ContainsText 'progress' $progress '정확도 23/50 (46.0%)'
 
 $questions = Get-Content -LiteralPath (Join-Path $repositoryRoot 'experiments/nl-questions.jsonl') |
     ForEach-Object { $_ | ConvertFrom-Json }
@@ -72,6 +143,38 @@ foreach ($expected in $difficultyRows) {
     $expectedRow = '| {0} | {1} | {2} | {3} | {4} |' -f
         $expected.Difficulty, $expected.Scalar, $expected.Ordered, $expected.Unordered, $expected.Total
     Assert-ContainsText 'experiment report' $report $expectedRow
+}
+
+$actualDifficultyExpectations = @(
+    @{ Difficulty = 'EASY'; Correct = 11; Total = 23; Accuracy = '47.8%' },
+    @{ Difficulty = 'MEDIUM'; Correct = 8; Total = 19; Accuracy = '42.1%' },
+    @{ Difficulty = 'HARD'; Correct = 4; Total = 8; Accuracy = '50.0%' }
+)
+foreach ($expected in $actualDifficultyExpectations) {
+    $subset = @($actualNlResults | Where-Object { $_.difficulty -eq $expected.Difficulty })
+    $correct = @($subset | Where-Object { $_.correct }).Count
+    if ($subset.Count -ne $expected.Total -or $correct -ne $expected.Correct) {
+        throw "Actual accuracy changed for $($expected.Difficulty)."
+    }
+    Assert-ContainsText 'experiment report' $report (
+        '| {0} | {1}/{2} | {3} |' -f $expected.Difficulty, $expected.Correct, $expected.Total, $expected.Accuracy
+    )
+}
+
+$actualComparisonExpectations = @(
+    @{ Comparison = 'SCALAR'; Correct = 11; Total = 28; Accuracy = '39.3%' },
+    @{ Comparison = 'ORDERED'; Correct = 5; Total = 9; Accuracy = '55.6%' },
+    @{ Comparison = 'UNORDERED'; Correct = 7; Total = 13; Accuracy = '53.8%' }
+)
+foreach ($expected in $actualComparisonExpectations) {
+    $subset = @($actualNlResults | Where-Object { $_.comparison -eq $expected.Comparison })
+    $correct = @($subset | Where-Object { $_.correct }).Count
+    if ($subset.Count -ne $expected.Total -or $correct -ne $expected.Correct) {
+        throw "Actual accuracy changed for $($expected.Comparison)."
+    }
+    Assert-ContainsText 'experiment report' $report (
+        '| {0} | {1}/{2} | {3} |' -f $expected.Comparison, $expected.Correct, $expected.Total, $expected.Accuracy
+    )
 }
 
 # 악의적 fixture와 원본 plan 수는 블로그의 시험 범위를 결정하므로 파일 개수까지 대조한다.
@@ -190,5 +293,5 @@ Assert-ContainsText 'progress' $progress "$testCount`개 통과"
 
 Write-Output (
     'DOCUMENTED_RESULTS_VERIFIED questions=50 golden=50 malicious=20 plans=60 ' +
-    "retry=30 tests=$testCount failures=0 skipped=0"
+    "retry=30 nlActual=50 accuracy=46.0% tests=$testCount failures=0 skipped=0"
 )
