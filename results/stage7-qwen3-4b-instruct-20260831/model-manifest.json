@@ -1,0 +1,19 @@
+{
+  "ollamaVersion": "0.33.2",
+  "modelName": "qwen3:4b-instruct",
+  "digest": "0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0",
+  "sizeBytes": 2497293803,
+  "family": "qwen3",
+  "parameterSize": "4.0B",
+  "quantization": "Q4_K_M",
+  "license": "Apache-2.0",
+  "runtimeObservation": {
+    "processor": "100% CPU",
+    "contextTokens": 4096,
+    "warmupWallMs": 13907,
+    "warmupPromptTokens": 46,
+    "warmupOutputTokens": 14
+  },
+  "ollamaLibraryUrl": "https://ollama.com/library/qwen3:4b-instruct",
+  "upstreamModelUrl": "https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507"
+}

@@ -1,0 +1,905 @@
+[ {
+  "id" : "NL-001",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 65355,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(order_id) AS total_orders\nFROM analytics.orders;"
+  } ],
+  "expectedRows" : [ [ 100 ] ],
+  "actualRows" : [ [ 100 ] ]
+}, {
+  "id" : "NL-002",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 7583,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS completed_orders_count\nFROM analytics.orders\nWHERE status = 'completed';"
+  } ],
+  "expectedRows" : [ [ 25 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-003",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 7410,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS canceled_order_count\nFROM analytics.orders\nWHERE status = 'canceled';"
+  } ],
+  "expectedRows" : [ [ 25 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-004",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 8484,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS pending_order_count\nFROM analytics.orders\nWHERE status = 'pending';"
+  } ],
+  "expectedRows" : [ [ 25 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-005",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 6082,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS delivered_order_count\nFROM analytics.orders\nWHERE status = 'delivered';"
+  } ],
+  "expectedRows" : [ [ 25 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-006",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 13340,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS completed_payment_count\nFROM analytics.payments\nWHERE status = 'completed';"
+  } ],
+  "expectedRows" : [ [ 50 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-007",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 8196,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS incomplete_payment_count\nFROM analytics.payments\nWHERE status = 'failed' OR status = 'pending';"
+  } ],
+  "expectedRows" : [ [ 50 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-008",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 6464,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS active_product_count\nFROM analytics.products\nWHERE active = TRUE;"
+  } ],
+  "expectedRows" : [ [ 18 ] ],
+  "actualRows" : [ [ 18 ] ]
+}, {
+  "id" : "NL-009",
+  "difficulty" : "EASY",
+  "comparison" : "ORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 7517,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT p.name\nFROM analytics.products p\nWHERE p.active = false\nORDER BY p.product_id;"
+  } ],
+  "expectedRows" : [ [ 7, "Synthetic Product 07" ], [ 14, "Synthetic Product 14" ] ],
+  "actualRows" : [ [ "Synthetic Product 07" ], [ "Synthetic Product 14" ] ]
+}, {
+  "id" : "NL-010",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 8322,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS customer_count\nFROM analytics.customers\nWHERE region = '서울';"
+  } ],
+  "expectedRows" : [ [ 10 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-011",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 6784,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS gold_customer_count\nFROM analytics.customers\nWHERE grade = 'gold';"
+  } ],
+  "expectedRows" : [ [ 16 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-012",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 15292,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS order_count\nFROM analytics.orders\nWHERE ordered_at >= '2026-07-01 00:00:00' \n  AND ordered_at < '2026-08-01 00:00:00';"
+  } ],
+  "expectedRows" : [ [ 8 ] ],
+  "actualRows" : [ [ 100 ] ]
+}, {
+  "id" : "NL-013",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 11242,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS order_count\nFROM analytics.orders\nWHERE ordered_at > '2026-07-10 00:00:00';"
+  } ],
+  "expectedRows" : [ [ 28 ] ],
+  "actualRows" : [ [ 30 ] ]
+}, {
+  "id" : "NL-014",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 6451,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT SUM(o.total_amount) AS total_order_amount\nFROM analytics.orders o;"
+  } ],
+  "expectedRows" : [ [ 1131250.00 ] ],
+  "actualRows" : [ [ 1131250.00 ] ]
+}, {
+  "id" : "NL-015",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 6077,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT AVG(total_amount) AS average_order_amount\nFROM analytics.orders;"
+  } ],
+  "expectedRows" : [ [ 11312.500000000000 ] ],
+  "actualRows" : [ [ 11312.500000000000 ] ]
+}, {
+  "id" : "NL-016",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 6984,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT MAX(o.total_amount) AS largest_order_amount\nFROM analytics.orders o;"
+  } ],
+  "expectedRows" : [ [ 17500.00 ] ],
+  "actualRows" : [ [ 17500.00 ] ]
+}, {
+  "id" : "NL-017",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 6889,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT MIN(o.total_amount) AS smallest_order_amount\nFROM analytics.orders o;"
+  } ],
+  "expectedRows" : [ [ 5125.00 ] ],
+  "actualRows" : [ [ 5125.00 ] ]
+}, {
+  "id" : "NL-018",
+  "difficulty" : "EASY",
+  "comparison" : "ORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 7671,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT order_id, total_amount\nFROM analytics.orders\nORDER BY total_amount DESC\nLIMIT 5;"
+  } ],
+  "expectedRows" : [ [ 100, 17500.00 ], [ 99, 17375.00 ], [ 98, 17250.00 ], [ 97, 17125.00 ], [ 96, 17000.00 ] ],
+  "actualRows" : [ [ 100, 17500.00 ], [ 99, 17375.00 ], [ 98, 17250.00 ], [ 97, 17125.00 ], [ 96, 17000.00 ] ]
+}, {
+  "id" : "NL-019",
+  "difficulty" : "EASY",
+  "comparison" : "ORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 13603,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT order_id, total_amount\nFROM analytics.orders\nORDER BY total_amount ASC\nLIMIT 5;"
+  } ],
+  "expectedRows" : [ [ 1, 5125.00 ], [ 2, 5250.00 ], [ 3, 5375.00 ], [ 4, 5500.00 ], [ 5, 5625.00 ] ],
+  "actualRows" : [ [ 1, 5125.00 ], [ 2, 5250.00 ], [ 3, 5375.00 ], [ 4, 5500.00 ], [ 5, 5625.00 ] ]
+}, {
+  "id" : "NL-020",
+  "difficulty" : "EASY",
+  "comparison" : "UNORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 6483,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT DISTINCT region AS region\nFROM analytics.customers;"
+  } ],
+  "expectedRows" : [ [ "INCHEON" ], [ "DAEGU" ], [ "GWANGJU" ], [ "SEOUL" ], [ "BUSAN" ] ],
+  "actualRows" : [ [ "INCHEON" ], [ "DAEGU" ], [ "GWANGJU" ], [ "SEOUL" ], [ "BUSAN" ] ]
+}, {
+  "id" : "NL-021",
+  "difficulty" : "MEDIUM",
+  "comparison" : "UNORDERED",
+  "status" : "DB_TIMEOUT",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "DB_TIMEOUT",
+  "elapsedMs" : 0,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    o.status AS order_status,\n    COUNT(o.order_id) AS order_count\nFROM \n    analytics.orders o\nGROUP BY \n    o.status;"
+  } ],
+  "expectedRows" : [ [ "PAID", 25 ], [ "SHIPPED", 25 ], [ "PENDING", 25 ], [ "CANCELLED", 25 ] ],
+  "actualRows" : null
+}, {
+  "id" : "NL-022",
+  "difficulty" : "MEDIUM",
+  "comparison" : "UNORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 10281,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    c.region,\n    COUNT(c.customer_id) AS customer_count\nFROM \n    analytics.customers c\nGROUP BY \n    c.region;"
+  } ],
+  "expectedRows" : [ [ "INCHEON", 10 ], [ "DAEGU", 10 ], [ "GWANGJU", 10 ], [ "SEOUL", 10 ], [ "BUSAN", 10 ] ],
+  "actualRows" : [ [ "INCHEON", 10 ], [ "DAEGU", 10 ], [ "GWANGJU", 10 ], [ "SEOUL", 10 ], [ "BUSAN", 10 ] ]
+}, {
+  "id" : "NL-023",
+  "difficulty" : "MEDIUM",
+  "comparison" : "UNORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 7489,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    c.grade,\n    COUNT(*) AS customer_count\nFROM \n    analytics.customers c\nGROUP BY \n    c.grade;"
+  } ],
+  "expectedRows" : [ [ "GOLD", 16 ], [ "BASIC", 17 ], [ "SILVER", 17 ] ],
+  "actualRows" : [ [ "GOLD", 16 ], [ "BASIC", 17 ], [ "SILVER", 17 ] ]
+}, {
+  "id" : "NL-024",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 12880,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT SUM(p.amount) AS total_payment_amount\nFROM analytics.payments p\nJOIN analytics.orders o ON p.order_id = o.order_id\nWHERE o.status = 'completed' AND p.status = 'completed';"
+  } ],
+  "expectedRows" : [ [ 559375.00 ] ],
+  "actualRows" : [ [ null ] ]
+}, {
+  "id" : "NL-025",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 10732,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT AVG(p.amount) AS average_payment_amount\nFROM analytics.payments p\nJOIN analytics.orders o ON p.order_id = o.order_id\nWHERE o.status = 'completed' AND p.status = 'completed';"
+  } ],
+  "expectedRows" : [ [ 11187.500000000000 ] ],
+  "actualRows" : [ [ null ] ]
+}, {
+  "id" : "NL-026",
+  "difficulty" : "MEDIUM",
+  "comparison" : "UNORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 21483,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    c.region,\n    COALESCE(SUM(o.total_amount), 0) AS total_order_amount\nFROM \n    analytics.orders o\nJOIN \n    analytics.customers c ON o.customer_id = c.customer_id\nJOIN \n    analytics.payments p ON o.order_id = p.order_id\nWHERE \n    p.status = 'completed'\nGROUP BY \n    c.region;"
+  } ],
+  "expectedRows" : [ [ "BUSAN", 60625.00 ], [ "DAEGU", 58125.00 ], [ "GWANGJU", 53125.00 ], [ "INCHEON", 55625.00 ], [ "SEOUL", 50625.00 ] ],
+  "actualRows" : [ ]
+}, {
+  "id" : "NL-027",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 12055,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS order_count\nFROM analytics.orders o\nJOIN analytics.payments p ON o.order_id = p.order_id\nWHERE o.status = 'completed' \n  AND p.status = 'completed';"
+  } ],
+  "expectedRows" : [ [ 25 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-028",
+  "difficulty" : "MEDIUM",
+  "comparison" : "UNORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 16628,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    c.name AS category_name,\n    COUNT(p.product_id) AS product_count\nFROM \n    analytics.categories c\nLEFT JOIN \n    analytics.products p ON c.category_id = p.category_id\nGROUP BY \n    c.category_id, c.name\nORDER BY \n    c.category_id;"
+  } ],
+  "expectedRows" : [ [ "FOOD", 4 ], [ "SPORTS", 4 ], [ "ELECTRONICS", 4 ], [ "BOOKS", 4 ], [ "HOME", 4 ] ],
+  "actualRows" : [ [ "BOOKS", 4 ], [ "ELECTRONICS", 4 ], [ "HOME", 4 ], [ "SPORTS", 4 ], [ "FOOD", 4 ] ]
+}, {
+  "id" : "NL-029",
+  "difficulty" : "MEDIUM",
+  "comparison" : "UNORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 14304,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    c.name AS category_name,\n    AVG(p.price) AS average_product_price\nFROM \n    analytics.categories c\nJOIN \n    analytics.products p ON c.category_id = p.category_id\nGROUP BY \n    c.category_id, c.name;"
+  } ],
+  "expectedRows" : [ [ "FOOD", 5687.5000000000000000 ], [ "ELECTRONICS", 4562.5000000000000000 ], [ "BOOKS", 4187.5000000000000000 ], [ "HOME", 4937.5000000000000000 ], [ "SPORTS", 5312.5000000000000000 ] ],
+  "actualRows" : [ [ "HOME", 4937.5000000000000000 ], [ "FOOD", 5687.5000000000000000 ], [ "SPORTS", 5312.5000000000000000 ], [ "ELECTRONICS", 4562.5000000000000000 ], [ "BOOKS", 4187.5000000000000000 ] ]
+}, {
+  "id" : "NL-030",
+  "difficulty" : "MEDIUM",
+  "comparison" : "UNORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 17554,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    p.product_id,\n    p.name AS product_name,\n    COALESCE(SUM(oi.quantity), 0) AS total_quantity_sold\nFROM \n    analytics.products p\n    LEFT JOIN analytics.order_items oi ON p.product_id = oi.product_id\nGROUP BY \n    p.product_id, p.name;"
+  } ],
+  "expectedRows" : [ [ 11, 9 ], [ 9, 11 ], [ 15, 11 ], [ 19, 10 ], [ 3, 11 ], [ 17, 9 ], [ 5, 9 ], [ 4, 10 ], [ 10, 10 ], [ 6, 11 ], [ 14, 9 ], [ 13, 10 ], [ 2, 9 ], [ 16, 10 ], [ 7, 10 ], [ 12, 11 ], [ 20, 9 ], [ 1, 10 ], [ 18, 11 ], [ 8, 9 ] ],
+  "actualRows" : [ [ 11, "Synthetic Product 11", 9 ], [ 9, "Synthetic Product 09", 11 ], [ 15, "Synthetic Product 15", 11 ], [ 19, "Synthetic Product 19", 10 ], [ 3, "Synthetic Product 03", 11 ], [ 17, "Synthetic Product 17", 9 ], [ 5, "Synthetic Product 05", 9 ], [ 4, "Synthetic Product 04", 10 ], [ 10, "Synthetic Product 10", 10 ], [ 6, "Synthetic Product 06", 11 ], [ 14, "Synthetic Product 14", 9 ], [ 13, "Synthetic Product 13", 10 ], [ 2, "Synthetic Product 02", 9 ], [ 16, "Synthetic Product 16", 10 ], [ 7, "Synthetic Product 07", 10 ], [ 12, "Synthetic Product 12", 11 ], [ 20, "Synthetic Product 20", 9 ], [ 1, "Synthetic Product 01", 10 ], [ 18, "Synthetic Product 18", 11 ], [ 8, "Synthetic Product 08", 9 ] ]
+}, {
+  "id" : "NL-031",
+  "difficulty" : "HARD",
+  "comparison" : "ORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 17404,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    p.product_id,\n    p.name AS product_name,\n    SUM(oi.quantity) AS total_quantity_sold\nFROM \n    analytics.products p\nJOIN \n    analytics.order_items oi ON p.product_id = oi.product_id\nGROUP BY \n    p.product_id, p.name\nORDER BY \n    total_quantity_sold DESC, p.product_id\nLIMIT 5;"
+  } ],
+  "expectedRows" : [ [ 3, "Synthetic Product 03", 11 ], [ 6, "Synthetic Product 06", 11 ], [ 9, "Synthetic Product 09", 11 ], [ 12, "Synthetic Product 12", 11 ], [ 15, "Synthetic Product 15", 11 ] ],
+  "actualRows" : [ [ 3, "Synthetic Product 03", 11 ], [ 6, "Synthetic Product 06", 11 ], [ 9, "Synthetic Product 09", 11 ], [ 12, "Synthetic Product 12", 11 ], [ 15, "Synthetic Product 15", 11 ] ]
+}, {
+  "id" : "NL-032",
+  "difficulty" : "HARD",
+  "comparison" : "ORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 21973,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    c.name AS category_name,\n    SUM(oi.quantity) AS total_quantity_sold\nFROM \n    analytics.categories c\nJOIN \n    analytics.products p ON c.category_id = p.category_id\nJOIN \n    analytics.order_items oi ON p.product_id = oi.product_id\nGROUP BY \n    c.category_id, c.name\nORDER BY \n    total_quantity_sold DESC;"
+  } ],
+  "expectedRows" : [ [ "HOME", 41 ], [ "BOOKS", 40 ], [ "SPORTS", 40 ], [ "ELECTRONICS", 39 ], [ "FOOD", 39 ] ],
+  "actualRows" : [ [ "HOME", 41 ], [ "SPORTS", 40 ], [ "BOOKS", 40 ], [ "ELECTRONICS", 39 ], [ "FOOD", 39 ] ]
+}, {
+  "id" : "NL-033",
+  "difficulty" : "MEDIUM",
+  "comparison" : "ORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 12320,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT o.order_id\nFROM analytics.orders o\nJOIN analytics.customers c ON o.customer_id = c.customer_id\nWHERE c.region = '서울'\n  AND o.status = 'completed'\nORDER BY o.ordered_at;"
+  } ],
+  "expectedRows" : [ [ 1 ], [ 21 ], [ 41 ], [ 61 ], [ 81 ] ],
+  "actualRows" : [ ]
+}, {
+  "id" : "NL-034",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 21354,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS completed_payments_count\nFROM analytics.payments p\nJOIN analytics.orders o ON p.order_id = o.order_id\nWHERE p.status = 'completed'\n  AND o.ordered_at >= '2026-07-05 00:00:00'\n  AND o.ordered_at < '2026-07-08 00:00:00';"
+  } ],
+  "expectedRows" : [ [ 12 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-035",
+  "difficulty" : "MEDIUM",
+  "comparison" : "ORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 24978,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    DATE_TRUNC('day', o.ordered_at) AS ordered_day,\n    COUNT(o.order_id) AS order_count\nFROM \n    analytics.orders o\nWHERE \n    EXTRACT(YEAR FROM o.ordered_at) = 2026 \n    AND EXTRACT(MONTH FROM o.ordered_at) = 7\nGROUP BY \n    DATE_TRUNC('day', o.ordered_at)\nORDER BY \n    ordered_day;"
+  } ],
+  "expectedRows" : [ [ "2026-06-30T15:00:00Z", 5 ], [ "2026-07-01T15:00:00Z", 8 ], [ "2026-07-02T15:00:00Z", 8 ], [ "2026-07-03T15:00:00Z", 8 ], [ "2026-07-04T15:00:00Z", 8 ], [ "2026-07-05T15:00:00Z", 8 ], [ "2026-07-06T15:00:00Z", 8 ], [ "2026-07-07T15:00:00Z", 8 ], [ "2026-07-08T15:00:00Z", 8 ], [ "2026-07-09T15:00:00Z", 8 ], [ "2026-07-10T15:00:00Z", 8 ], [ "2026-07-11T15:00:00Z", 8 ], [ "2026-07-12T15:00:00Z", 7 ] ],
+  "actualRows" : [ [ "2026-06-30T15:00:00Z", 5 ], [ "2026-07-01T15:00:00Z", 8 ], [ "2026-07-02T15:00:00Z", 8 ], [ "2026-07-03T15:00:00Z", 8 ], [ "2026-07-04T15:00:00Z", 8 ], [ "2026-07-05T15:00:00Z", 8 ], [ "2026-07-06T15:00:00Z", 8 ], [ "2026-07-07T15:00:00Z", 8 ], [ "2026-07-08T15:00:00Z", 8 ], [ "2026-07-09T15:00:00Z", 8 ], [ "2026-07-10T15:00:00Z", 8 ], [ "2026-07-11T15:00:00Z", 8 ], [ "2026-07-12T15:00:00Z", 7 ] ]
+}, {
+  "id" : "NL-036",
+  "difficulty" : "MEDIUM",
+  "comparison" : "UNORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 15162,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    DATE_TRUNC('hour', o.ordered_at) AS ordered_hour,\n    COUNT(o.order_id) AS order_count\nFROM \n    analytics.orders o\nGROUP BY \n    DATE_TRUNC('hour', o.ordered_at)\nORDER BY \n    ordered_hour;"
+  } ],
+  "expectedRows" : [ [ 3, 12 ], [ 18, 13 ], [ 21, 12 ], [ 9, 13 ], [ 6, 12 ], [ 15, 13 ], [ 12, 13 ], [ 0, 12 ] ],
+  "actualRows" : [ [ "2026-07-01T00:00:00Z", 1 ], [ "2026-07-01T03:00:00Z", 1 ], [ "2026-07-01T06:00:00Z", 1 ], [ "2026-07-01T09:00:00Z", 1 ], [ "2026-07-01T12:00:00Z", 1 ], [ "2026-07-01T15:00:00Z", 1 ], [ "2026-07-01T18:00:00Z", 1 ], [ "2026-07-01T21:00:00Z", 1 ], [ "2026-07-02T00:00:00Z", 1 ], [ "2026-07-02T03:00:00Z", 1 ], [ "2026-07-02T06:00:00Z", 1 ], [ "2026-07-02T09:00:00Z", 1 ], [ "2026-07-02T12:00:00Z", 1 ], [ "2026-07-02T15:00:00Z", 1 ], [ "2026-07-02T18:00:00Z", 1 ], [ "2026-07-02T21:00:00Z", 1 ], [ "2026-07-03T00:00:00Z", 1 ], [ "2026-07-03T03:00:00Z", 1 ], [ "2026-07-03T06:00:00Z", 1 ], [ "2026-07-03T09:00:00Z", 1 ], [ "2026-07-03T12:00:00Z", 1 ], [ "2026-07-03T15:00:00Z", 1 ], [ "2026-07-03T18:00:00Z", 1 ], [ "2026-07-03T21:00:00Z", 1 ], [ "2026-07-04T00:00:00Z", 1 ], [ "2026-07-04T03:00:00Z", 1 ], [ "2026-07-04T06:00:00Z", 1 ], [ "2026-07-04T09:00:00Z", 1 ], [ "2026-07-04T12:00:00Z", 1 ], [ "2026-07-04T15:00:00Z", 1 ], [ "2026-07-04T18:00:00Z", 1 ], [ "2026-07-04T21:00:00Z", 1 ], [ "2026-07-05T00:00:00Z", 1 ], [ "2026-07-05T03:00:00Z", 1 ], [ "2026-07-05T06:00:00Z", 1 ], [ "2026-07-05T09:00:00Z", 1 ], [ "2026-07-05T12:00:00Z", 1 ], [ "2026-07-05T15:00:00Z", 1 ], [ "2026-07-05T18:00:00Z", 1 ], [ "2026-07-05T21:00:00Z", 1 ], [ "2026-07-06T00:00:00Z", 1 ], [ "2026-07-06T03:00:00Z", 1 ], [ "2026-07-06T06:00:00Z", 1 ], [ "2026-07-06T09:00:00Z", 1 ], [ "2026-07-06T12:00:00Z", 1 ], [ "2026-07-06T15:00:00Z", 1 ], [ "2026-07-06T18:00:00Z", 1 ], [ "2026-07-06T21:00:00Z", 1 ], [ "2026-07-07T00:00:00Z", 1 ], [ "2026-07-07T03:00:00Z", 1 ], [ "2026-07-07T06:00:00Z", 1 ], [ "2026-07-07T09:00:00Z", 1 ], [ "2026-07-07T12:00:00Z", 1 ], [ "2026-07-07T15:00:00Z", 1 ], [ "2026-07-07T18:00:00Z", 1 ], [ "2026-07-07T21:00:00Z", 1 ], [ "2026-07-08T00:00:00Z", 1 ], [ "2026-07-08T03:00:00Z", 1 ], [ "2026-07-08T06:00:00Z", 1 ], [ "2026-07-08T09:00:00Z", 1 ], [ "2026-07-08T12:00:00Z", 1 ], [ "2026-07-08T15:00:00Z", 1 ], [ "2026-07-08T18:00:00Z", 1 ], [ "2026-07-08T21:00:00Z", 1 ], [ "2026-07-09T00:00:00Z", 1 ], [ "2026-07-09T03:00:00Z", 1 ], [ "2026-07-09T06:00:00Z", 1 ], [ "2026-07-09T09:00:00Z", 1 ], [ "2026-07-09T12:00:00Z", 1 ], [ "2026-07-09T15:00:00Z", 1 ], [ "2026-07-09T18:00:00Z", 1 ], [ "2026-07-09T21:00:00Z", 1 ], [ "2026-07-10T00:00:00Z", 1 ], [ "2026-07-10T03:00:00Z", 1 ], [ "2026-07-10T06:00:00Z", 1 ], [ "2026-07-10T09:00:00Z", 1 ], [ "2026-07-10T12:00:00Z", 1 ], [ "2026-07-10T15:00:00Z", 1 ], [ "2026-07-10T18:00:00Z", 1 ], [ "2026-07-10T21:00:00Z", 1 ], [ "2026-07-11T00:00:00Z", 1 ], [ "2026-07-11T03:00:00Z", 1 ], [ "2026-07-11T06:00:00Z", 1 ], [ "2026-07-11T09:00:00Z", 1 ], [ "2026-07-11T12:00:00Z", 1 ], [ "2026-07-11T15:00:00Z", 1 ], [ "2026-07-11T18:00:00Z", 1 ], [ "2026-07-11T21:00:00Z", 1 ], [ "2026-07-12T00:00:00Z", 1 ], [ "2026-07-12T03:00:00Z", 1 ], [ "2026-07-12T06:00:00Z", 1 ], [ "2026-07-12T09:00:00Z", 1 ], [ "2026-07-12T12:00:00Z", 1 ], [ "2026-07-12T15:00:00Z", 1 ], [ "2026-07-12T18:00:00Z", 1 ], [ "2026-07-12T21:00:00Z", 1 ], [ "2026-07-13T00:00:00Z", 1 ], [ "2026-07-13T03:00:00Z", 1 ], [ "2026-07-13T06:00:00Z", 1 ], [ "2026-07-13T09:00:00Z", 1 ] ]
+}, {
+  "id" : "NL-037",
+  "difficulty" : "EASY",
+  "comparison" : "ORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 10529,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    p.product_id,\n    p.price\nFROM \n    analytics.products p\nWHERE \n    p.price > 5000\nORDER BY \n    p.price DESC;"
+  } ],
+  "expectedRows" : [ [ 11, 5125.00 ], [ 12, 5500.00 ], [ 13, 5875.00 ], [ 14, 6250.00 ], [ 15, 6625.00 ], [ 16, 7000.00 ], [ 17, 7375.00 ], [ 18, 7750.00 ], [ 19, 8125.00 ], [ 20, 8500.00 ] ],
+  "actualRows" : [ [ 20, 8500.00 ], [ 19, 8125.00 ], [ 18, 7750.00 ], [ 17, 7375.00 ], [ 16, 7000.00 ], [ 15, 6625.00 ], [ 14, 6250.00 ], [ 13, 5875.00 ], [ 12, 5500.00 ], [ 11, 5125.00 ] ]
+}, {
+  "id" : "NL-038",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 6184,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT AVG(p.price) AS average_price\nFROM analytics.products p\nWHERE p.active = TRUE;"
+  } ],
+  "expectedRows" : [ [ 4937.5000000000000000 ] ],
+  "actualRows" : [ [ 4937.5000000000000000 ] ]
+}, {
+  "id" : "NL-039",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 8231,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS customer_count\nFROM analytics.customers\nWHERE created_at < '2025-01-11';"
+  } ],
+  "expectedRows" : [ [ 9 ] ],
+  "actualRows" : [ [ 9 ] ]
+}, {
+  "id" : "NL-040",
+  "difficulty" : "EASY",
+  "comparison" : "UNORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 6992,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT order_id\nFROM analytics.orders\nWHERE total_amount > 1000000;"
+  } ],
+  "expectedRows" : [ ],
+  "actualRows" : [ ]
+}, {
+  "id" : "NL-041",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 10358,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS payment_count\nFROM analytics.payments\nWHERE status = 'completed' \n  AND paid_at IS NULL;"
+  } ],
+  "expectedRows" : [ [ 50 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-042",
+  "difficulty" : "EASY",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 7757,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS payment_count\nFROM analytics.payments\nWHERE status = 'completed' \n  AND paid_at IS NOT NULL;"
+  } ],
+  "expectedRows" : [ [ 50 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-043",
+  "difficulty" : "HARD",
+  "comparison" : "SCALAR",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 11436,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    COUNT(*) AS order_count,\n    AVG(total_amount) AS avg_order_amount\nFROM analytics.orders\nWHERE total_amount > (\n    SELECT AVG(total_amount) \n    FROM analytics.orders\n);"
+  } ],
+  "expectedRows" : [ [ 50 ] ],
+  "actualRows" : [ [ 50, 14437.500000000000 ] ]
+}, {
+  "id" : "NL-044",
+  "difficulty" : "HARD",
+  "comparison" : "UNORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 7148,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT DISTINCT o.customer_id\nFROM analytics.orders o\nWHERE o.status = 'cancelled';"
+  } ],
+  "expectedRows" : [ [ 1 ], [ 3 ], [ 5 ], [ 7 ], [ 9 ], [ 11 ], [ 13 ], [ 15 ], [ 17 ], [ 19 ], [ 21 ], [ 23 ], [ 25 ], [ 27 ], [ 29 ], [ 31 ], [ 33 ], [ 35 ], [ 37 ], [ 39 ], [ 41 ], [ 43 ], [ 45 ], [ 47 ], [ 49 ] ],
+  "actualRows" : [ ]
+}, {
+  "id" : "NL-045",
+  "difficulty" : "HARD",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 2,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : false,
+  "failureCode" : null,
+  "elapsedMs" : 22498,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS unordered_product_count\nFROM analytics.products\nWHERE product_id NOT IN (\n    SELECT DISTINCT order_item.product_id\n    FROM analytics.order_items\n    JOIN analytics.orders ON analytics.order_items.order_id = analytics.orders.order_id\n);"
+  }, {
+    "attempt" : 2,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT COUNT(*) AS unordered_product_count\nFROM analytics.products\nWHERE category_id NOT IN (\n    SELECT DISTINCT product_id\n    FROM analytics.order_items\n);"
+  } ],
+  "expectedRows" : [ [ 0 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-046",
+  "difficulty" : "HARD",
+  "comparison" : "UNORDERED",
+  "status" : "RESULT_MISMATCH",
+  "correct" : false,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : "RESULT_MISMATCH",
+  "elapsedMs" : 15929,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    c.region,\n    SUM(p.amount) AS total_paid_amount\nFROM analytics.orders o\nJOIN analytics.payments p ON o.order_id = p.order_id\nJOIN analytics.customers c ON o.customer_id = c.customer_id\nWHERE p.status = 'completed'\nGROUP BY c.region;"
+  } ],
+  "expectedRows" : [ [ "BUSAN", 111875.00 ], [ "DAEGU", 119375.00 ], [ "GWANGJU", 109375.00 ], [ "INCHEON", 114375.00 ], [ "SEOUL", 104375.00 ] ],
+  "actualRows" : [ ]
+}, {
+  "id" : "NL-047",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 10233,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    COUNT(*) AS order_count\nFROM \n    analytics.orders o\nJOIN \n    analytics.payments p ON o.order_id = p.order_id\nWHERE \n    o.total_amount != p.amount;"
+  } ],
+  "expectedRows" : [ [ 0 ] ],
+  "actualRows" : [ [ 0 ] ]
+}, {
+  "id" : "NL-048",
+  "difficulty" : "MEDIUM",
+  "comparison" : "SCALAR",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 9492,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT SUM(oi.quantity * oi.unit_price) AS total_value\nFROM analytics.order_items oi;"
+  } ],
+  "expectedRows" : [ [ 981250.00 ] ],
+  "actualRows" : [ [ 981250.00 ] ]
+}, {
+  "id" : "NL-049",
+  "difficulty" : "HARD",
+  "comparison" : "UNORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 14637,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT c.name\nFROM analytics.categories c\nJOIN analytics.products p ON c.category_id = p.category_id\nGROUP BY c.category_id, c.name\nHAVING AVG(p.price) > 4000;"
+  } ],
+  "expectedRows" : [ [ "FOOD" ], [ "ELECTRONICS" ], [ "BOOKS" ], [ "HOME" ], [ "SPORTS" ] ],
+  "actualRows" : [ [ "HOME" ], [ "FOOD" ], [ "SPORTS" ], [ "ELECTRONICS" ], [ "BOOKS" ] ]
+}, {
+  "id" : "NL-050",
+  "difficulty" : "HARD",
+  "comparison" : "ORDERED",
+  "status" : "CORRECT",
+  "correct" : true,
+  "attemptCount" : 1,
+  "generationSucceeded" : true,
+  "firstAttemptValidationPassed" : true,
+  "failureCode" : null,
+  "elapsedMs" : 16501,
+  "generatedSql" : [ {
+    "attempt" : 1,
+    "model" : "qwen3:4b-instruct",
+    "sql" : "SELECT \n    c.customer_id,\n    COUNT(o.order_id) AS order_count\nFROM \n    analytics.customers c\nJOIN \n    analytics.orders o ON c.customer_id = o.customer_id\nGROUP BY \n    c.customer_id\nORDER BY \n    order_count DESC, \n    c.customer_id\nLIMIT 10;"
+  } ],
+  "expectedRows" : [ [ 1, 2 ], [ 2, 2 ], [ 3, 2 ], [ 4, 2 ], [ 5, 2 ], [ 6, 2 ], [ 7, 2 ], [ 8, 2 ], [ 9, 2 ], [ 10, 2 ] ],
+  "actualRows" : [ [ 1, 2 ], [ 2, 2 ], [ 3, 2 ], [ 4, 2 ], [ 5, 2 ], [ 6, 2 ], [ 7, 2 ], [ 8, 2 ], [ 9, 2 ], [ 10, 2 ] ]
+} ]

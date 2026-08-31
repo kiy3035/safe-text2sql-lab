@@ -1,0 +1,34 @@
+{
+  "status" : "COMPLETED",
+  "pendingReason" : null,
+  "totalQuestions" : 50,
+  "correctCount" : 23,
+  "accuracy" : 0.46,
+  "generationSuccessCount" : 50,
+  "generationSuccessRate" : 1.0,
+  "firstAttemptValidationPassCount" : 49,
+  "firstAttemptValidationPassRate" : 0.98,
+  "averageAttemptCount" : 1.02,
+  "medianAttemptCount" : 1.0,
+  "byDifficulty" : {
+    "MEDIUM" : {
+      "total" : 19,
+      "correct" : 8,
+      "accuracy" : 0.42105263157894735
+    },
+    "HARD" : {
+      "total" : 8,
+      "correct" : 4,
+      "accuracy" : 0.5
+    },
+    "EASY" : {
+      "total" : 23,
+      "correct" : 11,
+      "accuracy" : 0.4782608695652174
+    }
+  },
+  "failureCounts" : {
+    "DB_TIMEOUT" : 1,
+    "RESULT_MISMATCH" : 26
+  }
+}
