@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="검증된 SELECT만 읽기 전용 PostgreSQL에서 실행하는 로컬 Text2SQL 데모">
+    <title>Safe Text2SQL Lab</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<main class="shell">
+    <header class="hero">
+        <p class="eyebrow">LOCAL · SYNTHETIC DATA · READ ONLY</p>
+        <h1>질문은 자연어로,<br><span>실행은 검증된 SQL만.</span></h1>
+        <p class="hero-copy">
+            Ollama가 만든 SQL을 그대로 믿지 않고 AST 정책과 읽기 전용 DB 권한을 통과한
+            조회만 실행하는 백엔드 실험입니다.
+        </p>
+    </header>
+
+    <section class="query-card" aria-labelledby="query-title">
+        <div class="section-heading">
+            <div>
+                <p class="section-kicker">ASK THE DATA</p>
+                <h2 id="query-title">합성 커머스 데이터에 질문하기</h2>
+            </div>
+            <span class="status-dot"><span aria-hidden="true"></span> Local API</span>
+        </div>
+
+        <!-- 브라우저마다 다른 기본 경고 대신 app.js의 일관된 오류 패널을 사용한다. 서버 검증은 별도로 유지된다. -->
+        <form id="query-form" novalidate>
+            <label for="question">자연어 질문</label>
+            <textarea
+                    id="question"
+                    name="question"
+                    maxlength="1000"
+                    rows="4"
+                    placeholder="예: 주문 금액이 큰 상위 5개 주문을 알려줘"
+                    required></textarea>
+
+            <div class="input-footer">
+                <span id="character-count">0 / 1000</span>
+                <button id="submit-button" type="submit">
+                    <span class="button-label">안전하게 조회하기</span>
+                    <span class="button-spinner" aria-hidden="true"></span>
+                </button>
+            </div>
+        </form>
+
+        <div class="examples" aria-label="예시 질문">
+            <span>예시</span>
+            <button type="button" data-question="전체 주문 수를 알려줘">전체 주문 수</button>
+            <button type="button" data-question="지역별 고객 수를 알려줘">지역별 고객 수</button>
+            <button type="button" data-question="주문 금액이 큰 상위 5개 주문의 번호와 금액을 보여줘">상위 주문 5개</button>
+        </div>
+
+        <p class="notice">
+            첫 요청은 로컬 모델을 메모리에 올리느라 최대 1분 이상 걸릴 수 있습니다.
+            생성된 SQL 원문과 내부 오류는 화면에 노출하지 않습니다.
+        </p>
+    </section>
+
+    <section id="result-panel" class="result-card" aria-live="polite" hidden>
+        <div class="section-heading result-heading">
+            <div>
+                <p class="section-kicker">QUERY RESULT</p>
+                <h2>조회 결과</h2>
+            </div>
+            <div id="result-metadata" class="metadata"></div>
+        </div>
+
+        <div id="result-message" class="result-message" hidden></div>
+        <div id="table-wrapper" class="table-wrapper" hidden>
+            <table>
+                <thead id="result-head"></thead>
+                <tbody id="result-body"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <span>Spring Boot · PostgreSQL · JSqlParser · Ollama</span>
+        <span>고정 합성 데이터만 사용합니다.</span>
+    </footer>
+</main>
+
+<script src="/app.js" defer></script>
+</body>
+</html>

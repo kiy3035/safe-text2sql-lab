@@ -76,6 +76,12 @@ class DatabaseIntegrationTest {
         registry.add("spring.flyway.url", () -> jdbcUrl);
         registry.add("spring.flyway.user", () -> MIGRATION_USERNAME);
         registry.add("spring.flyway.password", () -> MIGRATION_PASSWORD);
+        /*
+         * 이 클래스의 API 테스트는 "Ollama가 없는 기본 실행"을 검증한다. 개발자가 같은
+         * PowerShell에서 실제 데모를 실행한 뒤 테스트하면 SQL_GENERATOR_PROVIDER=ollama가 남아
+         * 있을 수 있다. 외부 셸 상태가 테스트 의미를 바꾸지 않도록 provider를 명시적으로 고정한다.
+         */
+        registry.add("text2sql.llm.provider", () -> "disabled");
         // 4단계 실행기 검증에서는 작은 상한과 timeout을 사용해 테스트 시간을 줄인다.
         // 이 설정은 실행기 쿼리에만 적용되므로 Flyway 마이그레이션에는 영향을 주지 않는다.
         registry.add("text2sql.execution.max-rows", () -> 10);
