@@ -129,7 +129,7 @@ DB 원문을 전달하지 않고 안정적인 실패 코드만 feedback으로 �
 COPY, stacked statement, UNION 계열, 시스템 catalog, 금지 테이블·컬럼, `pg_sleep`, 데이터 변경
 CTE와 주석 우회 등 정확히 20건을 넣었다.
 
-최종 전체 테스트 91개가 통과했고 실패·오류·건너뜀은 0개였다. 악의적 fixture 20건은 모두
+최종 전체 테스트 94개가 통과했고 실패·오류·건너뜀은 0개였다. 악의적 fixture 20건은 모두
 차단됐으며 각 항목에서 Native Query executor 호출이 0회임을 확인했다.
 
 이 결과를 “모든 SQL 공격을 막았다”라고 표현하면 안 된다. 현재 명시한 20개 입력과 테스트한 AST
@@ -231,6 +231,21 @@ HTTP 초기화 비용이 포함돼 최대와 p95가 1497ms였다. 보기 좋은 
 더 정확하다.
 
 ## 재현 방법
+
+결과를 명령줄 JSON만으로 확인하면 흐름을 설명하기 어려워, 마지막에 Spring Boot가 직접 제공하는
+작은 화면도 붙였다. 화면은 질문을 기존 API로 보내고 결과를 표로 그릴 뿐이며, SQL 검증을 대신하지
+않는다. 서버가 돌려준 값도 `innerHTML`이 아니라 텍스트 노드로 넣는다.
+
+Docker Desktop과 Ollama 앱을 켠 뒤 아래 명령 하나를 실행하면 무작위 로컬 DB 비밀번호와 포트를
+Git 제외 `.env`에서 관리하고, 준비된 주소를 출력한다.
+
+```powershell
+.\scripts\start-local-demo.ps1
+```
+
+종료할 때는 앱 창에서 `Ctrl+C`를 누르고 `.\scripts\stop-local-demo.ps1`로 데모 DB를 내린다.
+이 간단한 경로 덕분에 블로그 독자도 긴 환경 변수 설정 없이 `질문 → SQL 생성 → AST 검증 → 읽기
+전용 실행 → 결과 표`를 직접 확인할 수 있다.
 
 Java 21과 Docker/Docker Compose가 준비된 PowerShell 환경에서 로컬 비밀번호를 환경 변수로 넣는다.
 

@@ -1,6 +1,6 @@
 # Safe Text2SQL Lab
 
-합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate, 제한된 Native Query 실행과 재시도 API, 자연어·인덱스·재시도 측정 runner와 실제 결과 기반 문서를 제공한다.
+합성 커머스 데이터를 사용해 `자연어 → SQL 생성 → 검증 → 읽기 전용 실행`을 단계별로 재현하는 개인 실험 프로젝트다. Spring Boot/PostgreSQL 기반, 로컬 Ollama용 SQL 생성 adapter, JSqlParser 기반 SQL 검증 gate, 제한된 Native Query 실행과 재시도 API, 간단한 로컬 데모 UI, 자연어·인덱스·재시도 측정 runner와 실제 결과 기반 문서를 제공한다.
 
 상세 문서:
 
@@ -16,7 +16,42 @@
 - Docker와 Docker Compose
 - Windows 예시 명령을 실행할 PowerShell
 
-Gradle은 별도 설치하지 않고 저장소의 Wrapper를 사용한다. 기본 LLM provider는 `disabled`이므로 Ollama와 로컬 모델 없이 애플리케이션 및 자동 테스트를 실행할 수 있다.
+Gradle은 별도 설치하지 않고 저장소의 Wrapper를 사용한다. 기본 LLM provider는 `disabled`이므로 Ollama와 로컬 모델 없이 애플리케이션 및 자동 테스트를 실행할 수 있다. 데모 UI에서 실제 자연어 질문을 실행하려면 로컬 Ollama와 `qwen3:4b-instruct` 모델이 필요하다.
+
+## 가장 간단한 데모 실행
+
+Docker Desktop과 Windows Ollama 앱을 실행한다. 모델을 아직 받지 않았다면 한 번만 다음 명령을 실행한다.
+
+```powershell
+ollama pull qwen3:4b-instruct
+```
+
+저장소 루트의 PowerShell에서 시작 스크립트를 실행한다.
+
+```powershell
+.\scripts\start-local-demo.ps1
+```
+
+스크립트가 출력한 `브라우저 주소`를 열고 자연어 질문을 입력한다. 기본 주소는
+`http://localhost:18080`이며 이미 사용 중이면 18081 이후의 빈 포트를 자동으로 골라 출력한다.
+첫 질문은 모델을 메모리에 올리는 시간 때문에 1분 이상 걸릴 수 있다.
+
+최초 실행 시 DB 비밀번호를 무작위로 생성해 Git에서 제외된 `.env`에 보존한다. 이후 실행에서는
+같은 파일을 자동으로 불러오므로 환경 변수를 다시 입력할 필요가 없다. 저장소에는 실제 비밀번호를
+하드코딩하지 않는다.
+
+Spring Boot는 실행 중인 창에서 `Ctrl+C`로 종료하고, PostgreSQL 컨테이너는 다음 명령으로 내린다.
+
+```powershell
+.\scripts\stop-local-demo.ps1
+```
+
+DB volume까지 지우고 seed를 처음부터 만들려는 경우에만 다음을 실행한다. 이 옵션은 데모 DB
+데이터를 삭제한다.
+
+```powershell
+.\scripts\stop-local-demo.ps1 -RemoveData
+```
 
 ## 환경 변수
 

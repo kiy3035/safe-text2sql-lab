@@ -49,7 +49,7 @@ $env:DOCKER_HOST = 'npipe:////./pipe/docker_engine'
 .\gradlew.bat --no-daemon test --rerun-tasks
 ```
 
-결과는 91개 통과, 실패 0, 오류 0, 건너뜀 0이었다.
+8단계 UI 계약 테스트 3개를 추가한 최종 결과는 94개 통과, 실패 0, 오류 0, 건너뜀 0이었다.
 
 악의적 SQL fixture는 정확히 20건이다. 각 항목에서 거절 사유뿐 아니라 Native Query executor 호출
 횟수가 0인지 확인했다. 20건 모두 차단되고 실행기 호출은 모두 0회였다. 범주는 DDL/DML/DCL,
